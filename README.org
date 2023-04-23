@@ -1,0 +1,4 @@
+* RS-BaseN
+
+The RS-BaseN library is a a generic base /n/ encoding/decoding
+library for /n/ ∈ {2, 4, 8, 16, 32, 64}.

@@ -1,0 +1,160 @@
+DE.RALPH-SCHLEICHER.BASEN
+
+A generic base N encoding/decoding library.
+
+                                                                      [Function]
+basen-encode (destination source &key base alphabet pad-character pad)
+   Generic base N encoding.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   Keyword argument BASE is the radix used for the encoding.  Valid
+    values are 64, 32, 16, 8, 4, or 2.  Default is 32.
+   Keyword argument ALPHABET is the alphabet for the encoding.  Value
+    has to be a string with at least BASE characters.  Default are the
+    decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.
+   Keyword argument PAD-CHARACTER is the pad character.  Value has to
+    be a character.  Default is the ‘=’ (equals sign) character.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+    Padding only occurs with base 32 encoding (40 bit encoding quantum)
+    and base 8 encoding (24 bit encoding quantum).
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Constant]
+human-base32-alphabet
+   A human readable base 32 alphabet.
+
+   Uses the letters ‘a’ to ‘z’ and the decimal digits ‘2’, ‘3’, ‘4’,
+   ‘5’, ‘7’, and ‘8’.  The decimal digit ‘6’ is omitted since it is
+   too close to the letter ‘b’.
+
+                                                                      [Function]
+rfc4648-base16-encode (destination source &key pad)
+   Base 16 encoding as per RFC 4648.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Constant]
+rfc4648-base32-alphabet
+   The base 32 alphabet as per RFC 4648.
+
+   Uses the letters ‘A’ to ‘Z’ and the decimal digits ‘2’ to ‘7’.
+
+                                                                      [Function]
+rfc4648-base32-encode (destination source &key pad)
+   Base 32 encoding as per RFC 4648.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+    Enabled by default.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Function]
+rfc4648-base32hex-encode (destination source &key pad)
+   Base 32 encoding as per RFC 4648 but with the standard alphabet.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+    Enabled by default.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Constant]
+rfc4648-base64-alphabet
+   The base 64 alphabet as per RFC 4648.
+
+   Uses the letters ‘A’ to ‘Z’ and ‘a’ to ‘z’, the decimal
+   digits ‘0’ to ‘9’, and the characters ‘+’ and ‘/’.
+
+                                                                      [Function]
+rfc4648-base64-encode (destination source &key pad)
+   Base 64 encoding as per RFC 4648.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+    Enabled by default.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Constant]
+rfc4648-base64url-alphabet
+   The base 64 URL and file name safe alphabet as per RFC 4648.
+
+   Uses the letters ‘A’ to ‘Z’ and ‘a’ to ‘z’, the decimal
+   digits ‘0’ to ‘9’, and the characters ‘-’ and ‘_’.
+
+                                                                      [Function]
+rfc4648-base64url-encode (destination source &key pad)
+   Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+
+   First argument DESTINATION is the output object.  Value is either
+    a stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a string.
+   Second argument SOURCE is the input object.  Value is either a stream,
+    a string, a sequence, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   If keyword argument PAD is true, append pad characters to the output
+    if the input is not an integral multiple of a full encoding quantum.
+    Enabled by default.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a string containing the
+   output.
+
+                                                                      [Constant]
+rfc4648-pad-character
+   The pad character as per RFC 4648.
+
+                                                                      [Constant]
+standard-alphabet
+   The standard base 36 alphabet.
+
+   Uses the decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.
+
+                                                                      [Constant]
+standard-pad-character
+   The standard pad character.

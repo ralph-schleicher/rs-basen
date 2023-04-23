@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+  <title>DE.RALPH-SCHLEICHER.BASEN</title>
+  <style type="text/css">
+   *{margin:0;border:0;padding:0}
+   body{color:#000;background-color:#fff;font-family:sans-serif;padding:1em;min-width:46em}
+   a{color:inherit;background-color:transparent;text-decoration:none}
+   table{border-collapse:collapse}
+   div.title{padding:1em}
+   div.subtitle{padding:1em}
+   div.prologue{padding:1em}
+   div.epilogue{padding:1em}
+   span.category{color:#212121;font-style:italic}
+   span.package,span.symbol{color:#212121;font-weight:700;white-space:nowrap}
+   span.lambda-list{color:#616161}
+   span.lambda-list-keyword{color:#388E3C;white-space:nowrap}
+   span.keyword{color:#212121;white-space:nowrap}
+   span.variable{color:#212121;font-style:italic;white-space:nowrap}
+   span.init-form{white-space:nowrap}
+   span.method-specializers{color:#616161}
+   span.method-specializer{color:#212121;white-space:nowrap}
+   span.method-qualifier{color:#212121;white-space:nowrap}
+   span.error{color:#f57c00}
+   div.contents{padding:1em}
+   div.contents-listing{padding:1em}
+   div.contents-listing ul{list-style-type:none}
+   @media all and (min-width:68em){div.contents-listing{column-count:2;column-gap:2em}}
+   div.definition{padding:1em}
+   div.signature{background-color:#F5F5F5;padding:1ex 1em}
+   table.signature td.symbol{text-align:left;vertical-align:baseline;white-space:nowrap;padding-right:.5em}
+   table.signature td.lambda-list{text-align:left;vertical-align:baseline;width:100%}
+   table.signature td.category{text-align:right;vertical-align:baseline;white-space:nowrap;padding-left:1.5em}
+   div.documentation{padding:1em}
+  </style>
+ </head>
+ <body>
+  <div class="title">
+   <h1>DE.RALPH-SCHLEICHER.BASEN</h1>
+  </div>
+  <div class="prologue">
+   <pre>A generic base N encoding/decoding library.</pre>
+  </div>
+  <div class="contents" id="contents">
+   <h2>Contents</h2>
+   <div class="contents-listing">
+    <ul>
+     <li>
+      <a href="#_61283039-c733-5e9c-af74-68f813cc7841">
+       <span class="category">Function</span>
+       <span class="symbol">basen-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_f712da65-1de8-57a6-8b95-1ffcacbf37dc">
+       <span class="category">Constant</span>
+       <span class="symbol">human-base32-alphabet</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_99379164-e2e3-5747-b71a-a9b78bf82dbd">
+       <span class="category">Function</span>
+       <span class="symbol">rfc4648-base16-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_482f4f5c-d728-52aa-bf20-aed45505623a">
+       <span class="category">Constant</span>
+       <span class="symbol">rfc4648-base32-alphabet</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_00b309d1-0e53-5c1c-a468-ccda72634457">
+       <span class="category">Function</span>
+       <span class="symbol">rfc4648-base32-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_0bc868dc-808e-57f7-947b-05656ff3c635">
+       <span class="category">Function</span>
+       <span class="symbol">rfc4648-base32hex-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_5c559325-0de4-5a6a-ad4a-851ef270fab6">
+       <span class="category">Constant</span>
+       <span class="symbol">rfc4648-base64-alphabet</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_1ac4628c-ec88-5bed-a31a-f683e79ea452">
+       <span class="category">Function</span>
+       <span class="symbol">rfc4648-base64-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_0703fbb2-174e-5f28-88e7-51a8c271571c">
+       <span class="category">Constant</span>
+       <span class="symbol">rfc4648-base64url-alphabet</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_c7db138a-d75e-576a-b16b-0cef77556cee">
+       <span class="category">Function</span>
+       <span class="symbol">rfc4648-base64url-encode</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_60ad58cd-d064-57ff-a641-06716e1c197f">
+       <span class="category">Constant</span>
+       <span class="symbol">rfc4648-pad-character</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_1c4768b1-4f61-5fbc-a66c-b9e94912da88">
+       <span class="category">Constant</span>
+       <span class="symbol">standard-alphabet</span>
+      </a>
+     </li>
+     <li>
+      <a href="#_54ded317-5151-520f-9144-7105bab45a29">
+       <span class="category">Constant</span>
+       <span class="symbol">standard-pad-character</span>
+      </a>
+     </li>
+    </ul>
+   </div>
+  </div>
+  <div class="dictionary">
+   <div class="definition" id="_61283039-c733-5e9c-af74-68f813cc7841">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">basen-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">base</span> <span class="variable">alphabet</span> <span class="variable">pad-character</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Generic base N encoding.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+Keyword argument BASE is the radix used for the encoding.  Valid
+ values are 64, 32, 16, 8, 4, or 2.  Default is 32.
+Keyword argument ALPHABET is the alphabet for the encoding.  Value
+ has to be a string with at least BASE characters.  Default are the
+ decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.
+Keyword argument PAD-CHARACTER is the pad character.  Value has to
+ be a character.  Default is the ‘=’ (equals sign) character.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Padding only occurs with base 32 encoding (40 bit encoding quantum)
+ and base 8 encoding (24 bit encoding quantum).
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_f712da65-1de8-57a6-8b95-1ffcacbf37dc">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">human-base32-alphabet</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>A human readable base 32 alphabet.
+
+Uses the letters ‘a’ to ‘z’ and the decimal digits ‘2’, ‘3’, ‘4’,
+‘5’, ‘7’, and ‘8’.  The decimal digit ‘6’ is omitted since it is
+too close to the letter ‘b’.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_99379164-e2e3-5747-b71a-a9b78bf82dbd">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base16-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base 16 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_482f4f5c-d728-52aa-bf20-aed45505623a">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base32-alphabet</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The base 32 alphabet as per RFC 4648.
+
+Uses the letters ‘A’ to ‘Z’ and the decimal digits ‘2’ to ‘7’.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_00b309d1-0e53-5c1c-a468-ccda72634457">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base32-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base 32 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_0bc868dc-808e-57f7-947b-05656ff3c635">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base32hex-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base 32 encoding as per RFC 4648 but with the standard alphabet.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_5c559325-0de4-5a6a-ad4a-851ef270fab6">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base64-alphabet</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The base 64 alphabet as per RFC 4648.
+
+Uses the letters ‘A’ to ‘Z’ and ‘a’ to ‘z’, the decimal
+digits ‘0’ to ‘9’, and the characters ‘+’ and ‘/’.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_1ac4628c-ec88-5bed-a31a-f683e79ea452">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base64-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base 64 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_0703fbb2-174e-5f28-88e7-51a8c271571c">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base64url-alphabet</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The base 64 URL and file name safe alphabet as per RFC 4648.
+
+Uses the letters ‘A’ to ‘Z’ and ‘a’ to ‘z’, the decimal
+digits ‘0’ to ‘9’, and the characters ‘-’ and ‘_’.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_c7db138a-d75e-576a-b16b-0cef77556cee">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-base64url-encode</span></a></td>
+	<td class="lambda-list"><span class="lambda-list">(<span class="variable">destination</span> <span class="variable">source</span> <span class="lambda-list-keyword">&amp;key</span> <span class="variable">pad</span>)</span></td>
+	<td class="category"><span class="category">Function</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_60ad58cd-d064-57ff-a641-06716e1c197f">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">rfc4648-pad-character</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The pad character as per RFC 4648.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_1c4768b1-4f61-5fbc-a66c-b9e94912da88">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">standard-alphabet</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The standard base 36 alphabet.
+
+Uses the decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.</pre>
+    </div>
+   </div>
+   <div class="definition" id="_54ded317-5151-520f-9144-7105bab45a29">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">standard-pad-character</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Constant</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>The standard pad character.</pre>
+    </div>
+   </div>
+  </div>
+ </body>
+</html>
