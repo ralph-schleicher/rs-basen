@@ -96,7 +96,7 @@ too close to the letter ‘b’.")
 (defun encode64 (output input pad)
   "Generic base 64 encoding."
   (let (;; Input buffer.
-        (octets (make-array 3 :element-type '(unsigned-byte 8) :initial-element 0))
+        (octets (make-array 3 :element-type 'octet :initial-element 0))
         ;; An encoding quantum.
         (int 0))
     ;; An integer with 24 bit.
@@ -148,7 +148,7 @@ too close to the letter ‘b’.")
 (defun encode32 (output input pad)
   "Generic base 32 encoding."
   (let (;; Input buffer.
-        (octets (make-array 5 :element-type '(unsigned-byte 8) :initial-element 0))
+        (octets (make-array 5 :element-type 'octet :initial-element 0))
         ;; An encoding quantum.
         (int 0))
     ;; An integer with 40 bit.
@@ -205,7 +205,7 @@ too close to the letter ‘b’.")
 (defun encode8 (output input pad)
   "Generic base 8 encoding."
   (let (;; Input buffer.
-        (octets (make-array 3 :element-type '(unsigned-byte 8) :initial-element 0))
+        (octets (make-array 3 :element-type 'octet :initial-element 0))
         ;; An encoding quantum.
         (int 0))
     ;; An integer with 24 bit.
