@@ -92,187 +92,91 @@ too close to the letter ‘b’.")
 
 ;;;; Encoding
 
+(defmacro define-encoder (name (full-quantum-size digit-size) &optional doc)
+  "Define an encoder function."
+  (%define-encoder name doc full-quantum-size digit-size))
+
+(defun %define-encoder (name doc bit/full-quantum bit/digit)
+  (let ((digit/full-quantum (/ bit/full-quantum bit/digit))
+        (byte/full-quantum (/ bit/full-quantum 8)))
+    ;; Return value.
+    (if (= byte/full-quantum 1)
+        `(defun ,name (output input pad)
+           ,@(when doc (list doc))
+           (declare (ignore pad))
+           (iter (for octet = (read-byte input nil))
+                 (until (null octet))
+                 ;; Output encoded characters.
+                 ,@(iter (repeat digit/full-quantum)
+                         (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                         (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) octet)) output)))))
+      `(defun ,name (output input pad)
+         ,@(when doc (list doc))
+         (let (;; Input buffer.
+               (octets (make-array ,byte/full-quantum :element-type 'octet :initial-element 0))
+               ;; An encoding quantum.
+               (int 0))
+           ;; An integer with FULL-QUANTUM-SIZE bit.
+           (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum)) int)))
+           ;; Do the encoding.
+           (iter (for len = (read-sequence octets input))
+                 (if (= len ,byte/full-quantum)
+                     (progn
+                       ;; A full encoding quantum.  Load octets.
+                       ,@(iter (repeat byte/full-quantum)
+                               (for index :from 0)
+                               (for pos :from (- bit/full-quantum 8) :by -8)
+                               (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
+                       ;; Output encoded characters.
+                       ,@(iter (repeat digit/full-quantum)
+                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                               (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output))))
+                   (progn
+                     ;; Remaining encoding quantum.
+                     (case len
+                       ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
+                               (for digit/quantum = (ceiling bit/quantum bit/digit))
+                               (for byte/quantum = (/ bit/quantum 8))
+                               (collecting
+                                 ;; The ‘case’ clause.
+                                 `(,byte/quantum
+                                   ;; Clear encoding quantum.
+                                   (setf int 0)
+                                   ;; Load octets.
+                                   ,@(iter (repeat byte/quantum)
+                                           (for index :from 0)
+                                           (for pos :from (- bit/full-quantum 8) :by -8)
+                                           (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
+                                   ;; Output encoded characters.
+                                   ,@(iter (repeat digit/quantum)
+                                           (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                                           (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output)))
+                                   ;; Output pad characters.
+                                   (when (not (null pad))
+                                     ,@(iter (repeat (- digit/full-quantum digit/quantum))
+                                             (collecting `(write-char *pad-character* output))))))))
+                     ;; Done.
+                     (leave)))))))))
+
 ;; See RFC 4648, §4 “Base 64 Encoding”.
-(defun encode64 (output input pad)
-  "Generic base 64 encoding."
-  (let (;; Input buffer.
-        (octets (make-array 3 :element-type 'octet :initial-element 0))
-        ;; An encoding quantum.
-        (int 0))
-    ;; An integer with 24 bit.
-    (declare (type (integer 0 #xFFFFFF) int))
-    ;; Do the encoding.
-    (iter (for len = (read-sequence octets input))
-          (if (= len 3)
-              (progn
-                ;; A full encoding quantum.  Load octets.
-                (setf (ldb (byte 8 16) int) (aref octets 0))
-                (setf (ldb (byte 8  8) int) (aref octets 1))
-                (setf (ldb (byte 8  0) int) (aref octets 2))
-                ;; Output encoded characters.
-                (write-char (char *alphabet* (ldb (byte 6 18) int)) output)
-                (write-char (char *alphabet* (ldb (byte 6 12) int)) output)
-                (write-char (char *alphabet* (ldb (byte 6  6) int)) output)
-                (write-char (char *alphabet* (ldb (byte 6  0) int)) output))
-            (progn
-              (case len
-                (1
-                 ;; Clear encoding quantum.
-                 (setf int 0)
-                 ;; Load octets.
-                 (setf (ldb (byte 8 16) int) (aref octets 0))
-                 ;; Output encoded characters.
-                 (write-char (char *alphabet* (ldb (byte 6 18) int)) output)
-                 (write-char (char *alphabet* (ldb (byte 6 12) int)) output)
-                 ;; Output pad characters.
-                 (when (not (null pad))
-                   (write-char *pad-character* output)
-                   (write-char *pad-character* output)))
-                (2
-                 ;; Clear encoding quantum.
-                 (setf int 0)
-                 ;; Load octets.
-                 (setf (ldb (byte 8 16) int) (aref octets 0))
-                 (setf (ldb (byte 8  8) int) (aref octets 1))
-                 ;; Output encoded characters.
-                 (write-char (char *alphabet* (ldb (byte 6 18) int)) output)
-                 (write-char (char *alphabet* (ldb (byte 6 12) int)) output)
-                 (write-char (char *alphabet* (ldb (byte 6  6) int)) output)
-                 ;; Output pad characters.
-                 (when (not (null pad))
-                   (write-char *pad-character* output))))
-              ;; Done.
-              (leave))))))
+(define-encoder encode64 (24 6)
+  "Generic base 64 encoding.")
 
 ;; See RFC 4648, §6 “Base 32 Encoding”.
-(defun encode32 (output input pad)
-  "Generic base 32 encoding."
-  (let (;; Input buffer.
-        (octets (make-array 5 :element-type 'octet :initial-element 0))
-        ;; An encoding quantum.
-        (int 0))
-    ;; An integer with 40 bit.
-    (declare (type (integer 0 #xFFFFFFFFFF) int))
-    ;; Do the encoding.
-    (iter (for len = (read-sequence octets input))
-          (if (= len 5)
-              (progn
-                ;; A full encoding quantum.  Load octets.
-                (setf (ldb (byte 8 32) int) (aref octets 0))
-                (setf (ldb (byte 8 24) int) (aref octets 1))
-                (setf (ldb (byte 8 16) int) (aref octets 2))
-                (setf (ldb (byte 8  8) int) (aref octets 3))
-                (setf (ldb (byte 8  0) int) (aref octets 4))
-                ;; Output encoded characters.
-                (write-char (char *alphabet* (ldb (byte 5 35) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5 30) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5 25) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5 20) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5 15) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5 10) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5  5) int)) output)
-                (write-char (char *alphabet* (ldb (byte 5  0) int)) output))
-            (progn
-              (when (> len 0)
-                (let (;; Number of pad characters.
-                      (pad-characters (ecase len (1 6) (2 4) (3 3) (4 1))))
-                  ;; Clear encoding quantum.
-                  (setf int 0)
-                  ;; Load octets.
-                  (iter (with j = 0)
-                        (for pos :from 32 :downto (* 8 (- 5 len)) :by 8)
-                        (setf (ldb (byte 8 pos) int) (aref octets j))
-                        (incf j))
-                  ;; Output encoded characters.
-                  (iter (for pos :from 35 :downto (* 5 pad-characters) :by 5)
-                        (write-char (char *alphabet* (ldb (byte 5 pos) int)) output))
-                  ;; Output pad characters.
-                  (when (not (null pad))
-                    (iter (repeat pad-characters)
-                          (write-char *pad-character* output)))))
-              ;; Done.
-              (leave))))))
+(define-encoder encode32 (40 5)
+  "Generic base 32 encoding.")
 
-(defun encode16 (output input pad)
-  "Generic base 16 encoding."
-  (declare (ignore pad))
-  (iter (for octet = (read-byte input nil))
-        (until (null octet))
-        ;; Output encoded characters.
-        (write-char (char *alphabet* (ldb (byte 4 4) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 4 0) octet)) output)))
+(define-encoder encode16 (8 4)
+  "Generic base 16 encoding.")
 
-(defun encode8 (output input pad)
-  "Generic base 8 encoding."
-  (let (;; Input buffer.
-        (octets (make-array 3 :element-type 'octet :initial-element 0))
-        ;; An encoding quantum.
-        (int 0))
-    ;; An integer with 24 bit.
-    (declare (type (integer 0 #xFFFFFF) int))
-    ;; Do the encoding.
-    (iter (for len = (read-sequence octets input))
-          (if (= len 3)
-              (progn
-                ;; A full encoding quantum.  Load octets.
-                (setf (ldb (byte 8 16) int) (aref octets 0))
-                (setf (ldb (byte 8  8) int) (aref octets 1))
-                (setf (ldb (byte 8  0) int) (aref octets 2))
-                ;; Output encoded characters.
-                (write-char (char *alphabet* (ldb (byte 3 21) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3 18) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3 15) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3 12) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3  9) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3  6) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3  3) int)) output)
-                (write-char (char *alphabet* (ldb (byte 3  0) int)) output))
-            (progn
-              (when (> len 0)
-                (let (;; Number of pad characters.
-                      (pad-characters (ecase len (1 5) (2 2))))
-                  ;; Clear encoding quantum.
-                  (setf int 0)
-                  ;; Load octets.
-                  (iter (with j = 0)
-                        (for pos :from 16 :downto (* 8 (- 3 len)) :by 8)
-                        (setf (ldb (byte 8 pos) int) (aref octets j))
-                        (incf j))
-                  ;; Output encoded characters.
-                  (iter (for pos :from 21 :downto (* 3 pad-characters) :by 3)
-                        (write-char (char *alphabet* (ldb (byte 3 pos) int)) output))
-                  ;; Output pad characters.
-                  (when (not (null pad))
-                    (iter (repeat pad-characters)
-                          (write-char *pad-character* output)))))
-              ;; Done.
-              (leave))))))
+(define-encoder encode8 (24 3)
+  "Generic base 8 encoding.")
 
-(defun encode4 (output input pad)
-  "Generic base 4 encoding."
-  (declare (ignore pad))
-  (iter (for octet = (read-byte input nil))
-        (until (null octet))
-        ;; Output encoded characters.
-        (write-char (char *alphabet* (ldb (byte 2 6) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 2 4) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 2 2) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 2 0) octet)) output)))
+(define-encoder encode4 (8 2)
+  "Generic base 4 encoding.")
 
-(defun encode2 (output input pad)
-  "Generic base 2 encoding."
-  (declare (ignore pad))
-  (iter (for octet = (read-byte input nil))
-        (until (null octet))
-        ;; Output encoded characters.
-        (write-char (char *alphabet* (ldb (byte 1 7) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 6) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 5) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 4) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 3) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 2) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 1) octet)) output)
-        (write-char (char *alphabet* (ldb (byte 1 0) octet)) output)))
+(define-encoder encode2 (8 1)
+  "Generic base 2 encoding.")
 
 (defun %encod2 (fun output source pad)
   "Second stage – divert on input."
