@@ -57,4 +57,15 @@ for inline expansion by the compiler."
      (defun ,name ,arg-list
        ,@body)))
 
+(define-condition basen-error (stream-error simple-condition)
+  ((position
+    :accessor stream-error-position
+    :initarg :position
+    :initform nil))
+  (:documentation "Base class for all encoding or decoding errors.
+
+Class precedence list:
+
+     ‘basen-error’, ‘stream-error’, ‘error’, ..."))
+
 ;; common.lisp ends here
