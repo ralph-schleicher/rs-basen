@@ -41,7 +41,8 @@
         :iterate
         :trivial-gray-streams)
   (:import-from #:flexi-streams
-                #:with-input-from-sequence)
+                #:with-input-from-sequence
+                #:with-output-to-sequence)
   (:export
    #:standard-alphabet
    #:standard-pad-character
@@ -51,11 +52,17 @@
    #:rfc4648-pad-character
    #:human-base32-alphabet
    #:basen-encode
+   #:basen-decode
    #:rfc4648-base64-encode
+   #:rfc4648-base64-decode
    #:rfc4648-base64url-encode
+   #:rfc4648-base64url-decode
    #:rfc4648-base32-encode
+   #:rfc4648-base32-decode
    #:rfc4648-base32hex-encode
-   #:rfc4648-base16-encode)
+   #:rfc4648-base32hex-decode
+   #:rfc4648-base16-encode
+   #:rfc4648-base16-decode)
   (:documentation
    "A generic base N encoding/decoding library."))
 
