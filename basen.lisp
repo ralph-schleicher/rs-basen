@@ -595,6 +595,13 @@ true, the input was filled with pad characters."
     (stream
      (let ((output destination))
        (%decod2 fun output input)))
+    (string
+     (with-output-to-string (stream destination)
+       (write-sequence (babel:octets-to-string
+                        (with-output-to-sequence (output :element-type 'octet)
+                          (%decod2 fun output input))
+                        :errorp t :encoding :utf-8)
+                       stream)))
     (pathname
      (with-open-file (output destination :direction :output
                                          :element-type 'octet
