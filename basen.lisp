@@ -96,67 +96,69 @@ too close to the letter ‘b’.")
   "Define an encoder function."
   (%define-encoder name doc full-quantum-size digit-size))
 
-(defun %define-encoder (name doc bit/full-quantum bit/digit)
-  (let ((digit/full-quantum (/ bit/full-quantum bit/digit))
-        (byte/full-quantum (/ bit/full-quantum 8)))
-    ;; Return value.
-    (if (= byte/full-quantum 1)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun %define-encoder (name doc bit/full-quantum bit/digit)
+    (let ((digit/full-quantum (/ bit/full-quantum bit/digit))
+          (byte/full-quantum (/ bit/full-quantum 8)))
+      ;; Return value.
+      (if (= byte/full-quantum 1)
+          `(defun ,name (output input pad)
+             ,@(when doc (list doc))
+             (declare (ignore pad))
+             (iter (for octet = (read-byte input nil))
+                   (until (null octet))
+                   ;; Output encoded characters.
+                   ,@(iter (repeat digit/full-quantum)
+                           (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                           (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) octet)) output)))))
         `(defun ,name (output input pad)
            ,@(when doc (list doc))
-           (declare (ignore pad))
-           (iter (for octet = (read-byte input nil))
-                 (until (null octet))
-                 ;; Output encoded characters.
-                 ,@(iter (repeat digit/full-quantum)
-                         (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                         (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) octet)) output)))))
-      `(defun ,name (output input pad)
-         ,@(when doc (list doc))
-         (let (;; Input buffer.
-               (octets (make-array ,byte/full-quantum :element-type 'octet :initial-element 0))
-               ;; An encoding quantum.
-               (int 0))
-           ;; An integer with FULL-QUANTUM-SIZE bit.
-           (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum)) int)))
-           ;; Do the encoding.
-           (iter (for len = (read-sequence octets input))
-                 (if (= len ,byte/full-quantum)
+           (let (;; Input buffer.
+                 (octets (make-array ,byte/full-quantum :element-type 'octet :initial-element 0))
+                 ;; An encoding quantum.
+                 (int 0))
+             ;; An integer with FULL-QUANTUM-SIZE bit.
+             (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
+             ;; Do the encoding.
+             (iter (for len = (read-sequence octets input))
+                   (if (= len ,byte/full-quantum)
+                       (progn
+                         ;; A full encoding quantum.  Load octets.
+                         ,@(iter (repeat byte/full-quantum)
+                                 (for index :from 0)
+                                 (for pos :from (- bit/full-quantum 8) :by -8)
+                                 (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
+                         ;; Output encoded characters.
+                         ,@(iter (repeat digit/full-quantum)
+                                 (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                                 (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output))))
                      (progn
-                       ;; A full encoding quantum.  Load octets.
-                       ,@(iter (repeat byte/full-quantum)
-                               (for index :from 0)
-                               (for pos :from (- bit/full-quantum 8) :by -8)
-                               (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
-                       ;; Output encoded characters.
-                       ,@(iter (repeat digit/full-quantum)
-                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                               (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output))))
-                   (progn
-                     ;; Remaining encoding quantum.
-                     (case len
-                       ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
-                               (for digit/quantum = (ceiling bit/quantum bit/digit))
-                               (for byte/quantum = (/ bit/quantum 8))
-                               (collecting
-                                 ;; The ‘case’ clause.
-                                 `(,byte/quantum
-                                   ;; Clear encoding quantum.
-                                   (setf int 0)
-                                   ;; Load octets.
-                                   ,@(iter (repeat byte/quantum)
-                                           (for index :from 0)
-                                           (for pos :from (- bit/full-quantum 8) :by -8)
-                                           (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
-                                   ;; Output encoded characters.
-                                   ,@(iter (repeat digit/quantum)
-                                           (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                                           (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output)))
-                                   ;; Output pad characters.
-                                   (when (not (null pad))
-                                     ,@(iter (repeat (- digit/full-quantum digit/quantum))
-                                             (collecting `(write-char *pad-character* output))))))))
-                     ;; Done.
-                     (leave)))))))))
+                       ;; Remaining encoding quantum.
+                       (case len
+                         ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
+                                 (for digit/quantum = (ceiling bit/quantum bit/digit))
+                                 (for byte/quantum = (/ bit/quantum 8))
+                                 (collecting
+                                   ;; The ‘case’ clause.
+                                   `(,byte/quantum
+                                     ;; Clear encoding quantum.
+                                     (setf int 0)
+                                     ;; Load octets.
+                                     ,@(iter (repeat byte/quantum)
+                                             (for index :from 0)
+                                             (for pos :from (- bit/full-quantum 8) :by -8)
+                                             (collecting `(setf (ldb (byte 8 ,pos) int) (aref octets ,index))))
+                                     ;; Output encoded characters.
+                                     ,@(iter (repeat digit/quantum)
+                                             (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                                             (collecting `(write-char (char *alphabet* (ldb (byte ,bit/digit ,pos) int)) output)))
+                                     ;; Output pad characters.
+                                     (when (not (null pad))
+                                       ,@(iter (repeat (- digit/full-quantum digit/quantum))
+                                               (collecting `(write-char *pad-character* output))))))))
+                       ;; Done.
+                       (leave)))))))))
+  ())
 
 ;; See RFC 4648, §4 “Base 64 Encoding”.
 (define-encoder encode64 (24 6)
@@ -393,17 +395,17 @@ Class precedence list:
 
      ‘decoding-error’, ‘basen-error’, ...")
   (:report (lambda (condition stream)
-	     (format stream "Decoding error")
-	     (alexandria:when-let ((input (stream-error-stream condition)))
-	       (format stream " in ~S" input)
-	       (alexandria:when-let ((position (stream-error-position condition)))
-		 (format stream " at ~S" position)))
-	     (format stream ".")
-	     (when (stringp (simple-condition-format-control condition))
-	       (terpri stream)
-	       (apply #'format stream
-		      (simple-condition-format-control condition)
-		      (simple-condition-format-arguments condition))))))
+             (format stream "Decoding error")
+             (alexandria:when-let ((input (stream-error-stream condition)))
+               (format stream " in ~S" input)
+               (alexandria:when-let ((position (stream-error-position condition)))
+                 (format stream " at ~S" position)))
+             (format stream ".")
+             (when (stringp (simple-condition-format-control condition))
+               (terpri stream)
+               (apply #'format stream
+                      (simple-condition-format-control condition)
+                      (simple-condition-format-arguments condition))))))
 
 (defun unexpected-character (input char)
   "Signal a ‘decoding-error’.
@@ -411,10 +413,10 @@ Class precedence list:
 First argument INPUT is the input stream.
 Second argument CHAR is the invalid character."
   (error 'decoding-error
-	 :stream input
-	 :position (file-position input)
-	 :format-control "Unexpected character ‘~A’."
-	 :format-arguments (list char)))
+         :stream input
+         :position (file-position input)
+         :format-control "Unexpected character ‘~A’."
+         :format-arguments (list char)))
 
 (defun invalid-last-digit (input char)
   "Signal a ‘decoding-error’.
@@ -422,8 +424,8 @@ Second argument CHAR is the invalid character."
 First argument INPUT is the input stream.
 Second argument CHAR is the invalid character."
   (error 'decoding-error
-	 :stream input
-	 :position (file-position input)
+         :stream input
+         :position (file-position input)
          :format-control "Invalid last digit ‘~A’, pad bits are not zero."
          :format-arguments (list char)))
 
@@ -438,8 +440,8 @@ For example, base 16 encoding always generates digit pairs with no
 rest.  Base 16 decoding a sequence with an odd number of characters
 leaves a rest of one character."
   (error 'decoding-error
-	 :stream input
-	 :position (file-position input)
+         :stream input
+         :position (file-position input)
          ;; The ‘~?’ format directive consumes two arguments,
          ;; a format control and the list of arguments.
          :format-control "Wrong number of remaining digits.~%Expect ~? but got ~A."
@@ -488,65 +490,67 @@ true, the input was filled with pad characters."
   "Define a decoder function."
   (%define-decoder name doc full-quantum-size digit-size))
 
-(defun %define-decoder (name doc bit/full-quantum bit/digit)
-  (let ((digit/full-quantum (/ bit/full-quantum bit/digit))
-        (byte/full-quantum (/ bit/full-quantum 8)))
-    ;; Return value.
-    `(defun ,name (output input)
-       ,@(when doc (list doc))
-       (let (;; Input buffer (digit weights, not characters).
-             (octets (make-array ,digit/full-quantum :element-type 'octet :initial-element 0))
-             ;; An encoding quantum.
-             (int 0))
-         ;; An integer with BIT/FULL-QUANTUM bit.
-         (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum)) int)))
-         ;; Do the decoding.
-         (iter (for (values len pad) = (decode-input octets input))
-               (if (= len ,digit/full-quantum)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun %define-decoder (name doc bit/full-quantum bit/digit)
+    (let ((digit/full-quantum (/ bit/full-quantum bit/digit))
+          (byte/full-quantum (/ bit/full-quantum 8)))
+      ;; Return value.
+      `(defun ,name (output input)
+         ,@(when doc (list doc))
+         (let (;; Input buffer (digit weights, not characters).
+               (octets (make-array ,digit/full-quantum :element-type 'octet :initial-element 0))
+               ;; An encoding quantum.
+               (int 0))
+           ;; An integer with BIT/FULL-QUANTUM bit.
+           (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
+           ;; Do the decoding.
+           (iter (for (values len pad) = (decode-input octets input))
+                 (if (= len ,digit/full-quantum)
+                     (progn
+                       ;; A full encoding quantum.  Load digits.
+                       ,@(iter (repeat digit/full-quantum)
+                               (for index :from 0)
+                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                               (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
+                       ;; Output decoded octets.
+                       ,@(iter (repeat byte/full-quantum)
+                               (for pos :from (- bit/full-quantum 8) :by -8)
+                               (collecting `(write-byte (ldb (byte 8 ,pos) int) output))))
                    (progn
-                     ;; A full encoding quantum.  Load digits.
-                     ,@(iter (repeat digit/full-quantum)
-                             (for index :from 0)
-                             (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                             (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
-                     ;; Output decoded octets.
-                     ,@(iter (repeat byte/full-quantum)
-                             (for pos :from (- bit/full-quantum 8) :by -8)
-                             (collecting `(write-byte (ldb (byte 8 ,pos) int) output))))
-                 (progn
-                   ;; Remaining encoding quantum.
-                   ,(let (expected-length)
-                      `(case len
-                         (0)
-                         ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
-                                 (for digit/quantum = (ceiling bit/quantum bit/digit))
-                                 (for byte/quantum = (/ bit/quantum 8))
-                                 (collecting
-                                   ;; The ‘case’ clause.
-                                   `(,digit/quantum
-                                     ;; Clear encoding quantum.
-                                     (setf int 0)
-                                     ;; Load digits.
-                                     ,@(iter (repeat digit/quantum)
-                                             (for index :from 0)
-                                             (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                                             (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
-                                     ;; Sanity check.
-                                     (unless (zerop (ldb (byte ,(- bit/full-quantum bit/quantum) 0) int))
-                                       (invalid-last-digit input (char *alphabet* (aref octets ,(1- digit/quantum)))))
-                                     ;; Output decoded octets.
-                                     ,@(iter (repeat byte/quantum)
-                                             (for pos :from (- bit/full-quantum 8) :by -8)
-                                             (collecting `(write-byte (ldb (byte 8 ,pos) int) output)))))
-                                 (push digit/quantum expected-length))
-                         (t (invalid-sequence-length input len ',(nreverse expected-length)))))
-                   ;; Done.
-                   (when pad
-                     ;; Ensure end of file.
-                     (let ((char (peek-char nil input nil nil)))
-                       (when (and char (not *junk-allowed*))
-                         (unexpected-character input char))))
-                   (leave))))))))
+                     ;; Remaining encoding quantum.
+                     ,(let (expected-length)
+                        `(case len
+                           (0)
+                           ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
+                                   (for digit/quantum = (ceiling bit/quantum bit/digit))
+                                   (for byte/quantum = (/ bit/quantum 8))
+                                   (collecting
+                                     ;; The ‘case’ clause.
+                                     `(,digit/quantum
+                                       ;; Clear encoding quantum.
+                                       (setf int 0)
+                                       ;; Load digits.
+                                       ,@(iter (repeat digit/quantum)
+                                               (for index :from 0)
+                                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                                               (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
+                                       ;; Sanity check.
+                                       (unless (zerop (ldb (byte ,(- bit/full-quantum bit/quantum) 0) int))
+                                         (invalid-last-digit input (char *alphabet* (aref octets ,(1- digit/quantum)))))
+                                       ;; Output decoded octets.
+                                       ,@(iter (repeat byte/quantum)
+                                               (for pos :from (- bit/full-quantum 8) :by -8)
+                                               (collecting `(write-byte (ldb (byte 8 ,pos) int) output)))))
+                                   (push digit/quantum expected-length))
+                           (t (invalid-sequence-length input len ',(nreverse expected-length)))))
+                     ;; Done.
+                     (when pad
+                       ;; Ensure end of file.
+                       (let ((char (peek-char nil input nil nil)))
+                         (when (and char (not *junk-allowed*))
+                           (unexpected-character input char))))
+                     (leave))))))))
+  ())
 
 (define-decoder decode64 (24 6)
   "Generic base 64 decoding.")
@@ -688,7 +692,8 @@ If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
 is interpreted as a stream of UTF-8 encoded characters."
- (apply #'basen-decode destination source
+  (declare (ignore junk-allowed result-type))
+  (apply #'basen-decode destination source
          :base 64
          :alphabet rfc4648-base64-alphabet
          :pad-character rfc4648-pad-character
@@ -714,6 +719,7 @@ If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
 is interpreted as a stream of UTF-8 encoded characters."
+  (declare (ignore junk-allowed result-type))
   (apply #'basen-decode destination source
          :base 64
          :alphabet rfc4648-base64url-alphabet
@@ -740,6 +746,7 @@ If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
 is interpreted as a stream of UTF-8 encoded characters."
+  (declare (ignore junk-allowed result-type))
   (apply #'basen-decode destination source
          :base 32
          :alphabet rfc4648-base32-alphabet
@@ -766,6 +773,7 @@ If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
 is interpreted as a stream of UTF-8 encoded characters."
+  (declare (ignore junk-allowed result-type))
   (apply #'basen-decode destination source
          :base 32
          :alphabet standard-alphabet
@@ -792,6 +800,7 @@ If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
 is interpreted as a stream of UTF-8 encoded characters."
+  (declare (ignore junk-allowed result-type))
   (apply #'basen-decode destination source
          :base 16
          :alphabet standard-alphabet
