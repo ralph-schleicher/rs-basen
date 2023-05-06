@@ -38,17 +38,20 @@
 (ql:quickload "rs-basen")
 (ql:quickload "rs-doc") ;private
 
-(let ((data (let ((rs-doc:*lambda-list-init-form* nil))
-              (rs-doc:gather-doc
-               :package :rs-basen)))
+(in-package :rs-doc-user)
+
+(let ((data (let ((*lambda-list-init-form* nil))
+              (gather-doc
+               :package :rs-basen
+               :title "RS-BASEN")))
       (doc-dir (merge-pathnames
                 (make-pathname :directory '(:relative "doc"))
                 (asdf:system-source-directory "rs-basen"))))
-  (rs-doc:generate-doc
+  (generate-doc
    :data data
    :output-format :html
    :output (merge-pathnames "rs-basen.html" doc-dir))
-  (rs-doc:generate-doc
+  (generate-doc
    :data data
    :output-format :text
    :output (merge-pathnames "rs-basen.txt" doc-dir))
