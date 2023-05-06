@@ -195,7 +195,7 @@ too close to the letter ‘b’.")
     (pathname
      (with-open-file (input source :element-type 'octet)
        (funcall fun output input pad)))
-    ((member t)
+    ((eql t)
      (let ((input *standard-input*))
        (funcall fun output input pad))))
   ;; Return value.
@@ -217,7 +217,7 @@ too close to the letter ‘b’.")
                                          :if-does-not-exist :create
                                          :external-format (uiop:encoding-external-format :utf-8))
        (%encod2 fun output input pad)))
-    ((member t)
+    ((eql t)
      (let ((output *standard-output*))
        (%encod2 fun output input pad)))
     (null
@@ -583,7 +583,7 @@ true, the input was filled with pad characters."
      (with-open-file (input source :element-type 'character
                                    :external-format (uiop:encoding-external-format :utf-8))
        (funcall fun output input)))
-    ((member t)
+    ((eql t)
      (let ((input *standard-input*))
        (funcall fun output input))))
   ;; Return value.
@@ -608,7 +608,7 @@ true, the input was filled with pad characters."
                                          :if-exists :supersede
                                          :if-does-not-exist :create)
        (%decod2 fun output input)))
-    ((member t)
+    ((eql t)
      (let ((output *standard-output*))
        (%decod2 fun output input)))
     (null
