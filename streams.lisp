@@ -71,7 +71,7 @@
    "Class for an octets from character stream.
 An octets from character stream converts a character input stream
 into a binary input stream.  When reading from such a stream, input
-characters are decoded on the fly into a sequence of octets.  The
+characters are encoded on the fly into a sequence of octets.  The
 character encoding is defined when the octets from character stream
 is created.
 
@@ -100,15 +100,15 @@ See also the ‘with-octets-from-string’ macro."))
                    t))))))
 
 (defmacro with-octets-from-string ((var string &key index (start 0) end character-encoding (byte-order-mark :default)) &body body)
-  "Read the decoded byte sequence of a string.
+  "Read the encoded byte sequence of a string.
 This macro is like ‘with-input-from-string’ except that the input
 stream is a binary stream supplying octets; i.e. the characters of
-the input string are decoded on the fly into a stream of octets.
+the input string are encoded on the fly into a stream of octets.
 
 First argument VAR is the variable binding the binary input stream.
  The ‘read-byte’ and ‘read-sequence’ function can be used to read
  octets from this stream.
-Second argument STRING is the string being decoded.
+Second argument STRING is the string being encoded.
 Keyword arguments INDEX, START, and END have the same meaning as for
  the ‘with-input-from-string’ macro.
 Keyword argument CHARACTER-ENCODING is a Babel character encoding.
