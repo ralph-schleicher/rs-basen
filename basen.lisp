@@ -343,115 +343,6 @@ Affected by ‘*line-length*’ and ‘*line-separator*’."
                (2 #'encode2))
              destination source pad)))
 
-(defun rfc4648-base64-encode (destination source &key (pad t))
-  "Base 64 encoding as per RFC 4648.
-
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument PAD is true, append pad characters to the output
- if the input is not an integral multiple of a full encoding quantum.
- Enabled by default.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
-  (basen-encode destination source
-                :base 64
-                :alphabet rfc4648-base64-alphabet
-                :pad-character rfc4648-pad-character
-                :pad pad))
-
-(defun rfc4648-base64url-encode (destination source &key (pad t))
-  "Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
-
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument PAD is true, append pad characters to the output
- if the input is not an integral multiple of a full encoding quantum.
- Enabled by default.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
-  (basen-encode destination source
-                :base 64
-                :alphabet rfc4648-base64url-alphabet
-                :pad-character rfc4648-pad-character
-                :pad pad))
-
-(defun rfc4648-base32-encode (destination source &key (pad t))
-  "Base 32 encoding as per RFC 4648.
-
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument PAD is true, append pad characters to the output
- if the input is not an integral multiple of a full encoding quantum.
- Enabled by default.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
-  (basen-encode destination source
-                :base 32
-                :alphabet rfc4648-base32-alphabet
-                :pad-character rfc4648-pad-character
-                :pad pad))
-
-(defun rfc4648-base32hex-encode (destination source &key (pad t))
-  "Base 32 encoding as per RFC 4648 but with the standard alphabet.
-
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument PAD is true, append pad characters to the output
- if the input is not an integral multiple of a full encoding quantum.
- Enabled by default.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
-  (basen-encode destination source
-                :base 32
-                :alphabet standard-alphabet
-                :pad-character rfc4648-pad-character
-                :pad pad))
-
-(defun rfc4648-base16-encode (destination source &key pad)
-  "Base 16 encoding as per RFC 4648.
-
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument PAD is true, append pad characters to the output
- if the input is not an integral multiple of a full encoding quantum.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
-  (basen-encode destination source
-                :base 16
-                :alphabet standard-alphabet
-                :pad-character rfc4648-pad-character
-                :pad pad))
-
 ;;;; Decoding
 
 (defvar *char-equal* #'char=
@@ -586,7 +477,7 @@ true, the input was filled with pad characters."
                (octets (make-array ,digit/full-quantum :element-type 'octet :initial-element 0))
                ;; An encoding quantum.
                (int 0))
-           ;; An integer with BIT/FULL-QUANTUM bit.
+           ;; An integer with FULL-QUANTUM-SIZE bit.
            (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
            ;; Do the decoding.
            (iter (for (values len pad) = (decode-input octets input))
@@ -766,6 +657,30 @@ is interpreted as a stream of UTF-8 encoded characters."
                (2 #'decode2))
              destination source result-type)))
 
+;;; RFC 4648 – The Base16, Base32, and Base64 Data Encodings
+
+(defun rfc4648-base64-encode (destination source &key (pad t))
+  "Base 64 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output."
+  (basen-encode destination source
+                :base 64
+                :alphabet rfc4648-base64-alphabet
+                :pad-character rfc4648-pad-character
+                :pad pad))
+
 (defun rfc4648-base64-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 4648.
 
@@ -792,6 +707,28 @@ is interpreted as a stream of UTF-8 encoded characters."
          :alphabet rfc4648-base64-alphabet
          :pad-character rfc4648-pad-character
          options))
+
+(defun rfc4648-base64url-encode (destination source &key (pad t))
+  "Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output."
+  (basen-encode destination source
+                :base 64
+                :alphabet rfc4648-base64url-alphabet
+                :pad-character rfc4648-pad-character
+                :pad pad))
 
 (defun rfc4648-base64url-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 4648 but with the URL safe alphabet.
@@ -820,6 +757,28 @@ is interpreted as a stream of UTF-8 encoded characters."
          :pad-character rfc4648-pad-character
          options))
 
+(defun rfc4648-base32-encode (destination source &key (pad t))
+  "Base 32 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output."
+  (basen-encode destination source
+                :base 32
+                :alphabet rfc4648-base32-alphabet
+                :pad-character rfc4648-pad-character
+                :pad pad))
+
 (defun rfc4648-base32-decode (destination source &rest options &key junk-allowed result-type)
   "Base 32 decoding as per RFC 4648.
 
@@ -847,6 +806,28 @@ is interpreted as a stream of UTF-8 encoded characters."
          :pad-character rfc4648-pad-character
          options))
 
+(defun rfc4648-base32hex-encode (destination source &key (pad t))
+  "Base 32 encoding as per RFC 4648 but with the standard alphabet.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+ Enabled by default.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output."
+  (basen-encode destination source
+                :base 32
+                :alphabet standard-alphabet
+                :pad-character rfc4648-pad-character
+                :pad pad))
+
 (defun rfc4648-base32hex-decode (destination source &rest options &key junk-allowed result-type)
   "Base 32 decoding as per RFC 4648 but with the standard alphabet.
 
@@ -873,6 +854,27 @@ is interpreted as a stream of UTF-8 encoded characters."
          :alphabet standard-alphabet
          :pad-character rfc4648-pad-character
          options))
+
+(defun rfc4648-base16-encode (destination source &key pad)
+  "Base 16 encoding as per RFC 4648.
+
+First argument DESTINATION is the output object.  Value is either
+ a stream, a string, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-output*’ and ‘nil’ means to return a string.
+Second argument SOURCE is the input object.  Value is either a stream,
+ a string, a sequence, or a pathname.  The special value ‘t’ is equal
+ to ‘*standard-input*’.
+If keyword argument PAD is true, append pad characters to the output
+ if the input is not an integral multiple of a full encoding quantum.
+
+If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+result is ‘nil’.  Otherwise, the result is a string containing the
+output."
+  (basen-encode destination source
+                :base 16
+                :alphabet standard-alphabet
+                :pad-character rfc4648-pad-character
+                :pad pad))
 
 (defun rfc4648-base16-decode (destination source &rest options &key junk-allowed result-type)
   "Base 16 decoding as per RFC 4648.
