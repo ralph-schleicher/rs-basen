@@ -421,7 +421,7 @@ leaves a rest of one character."
   (iter (for char = (read-char input nil nil))
         (cond ((null char)
                (finish))
-              ((not (whitespace-char-p char))
+              ((not (unicode-whitespace-p char))
                (unread-char char input)
                (finish)))))
 
