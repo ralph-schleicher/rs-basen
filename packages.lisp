@@ -46,6 +46,7 @@
   (:export
    #:*line-length*
    #:*line-separator*
+   #:*ignore-whitespace*
    #:standard-alphabet
    #:standard-pad-character
    #:rfc4648-base64-alphabet
@@ -64,7 +65,11 @@
    #:rfc4648-base32hex-encode
    #:rfc4648-base32hex-decode
    #:rfc4648-base16-encode
-   #:rfc4648-base16-decode)
+   #:rfc4648-base16-decode
+   #:rfc1421-base64-encode
+   #:rfc1421-base64-decode
+   #:rfc2045-base64-encode
+   #:rfc2045-base64-decode)
   (:documentation
    "A generic base N encoding/decoding library."))
 
