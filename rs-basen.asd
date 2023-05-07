@@ -44,7 +44,8 @@
                "iterate"
                "babel"
                "trivial-gray-streams"
-               "flexi-streams")
+               "flexi-streams"
+               "cl-unicode")
   :serial t
   :components ((:file "packages")
                (:file "common")
