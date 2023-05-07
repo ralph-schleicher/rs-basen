@@ -138,6 +138,11 @@ Affected by ‘*line-separator*’ and ‘*default-line-separator*’."
   (ecase (or *line-separator* :default)
     (:default *default-line-separator*) (:lf lf) (:cr cr) (:crlf crlf)))
 
+(defvar *ignore-whitespace* nil
+  "Whether or not to ignore whitespace characters on input.
+If enabled, whitespace characters around the encoded data and between
+full encoding quantums is ignored.  Disabled by default.")
+
 ;;;; Encoding
 
 (defmacro define-encoder (name (full-quantum-size digit-size) &optional doc)
@@ -520,6 +525,15 @@ leaves a rest of one character."
          ;; and so on.
          :format-arguments (list "~#[none~;~A~;~A or ~A~:;~@{~#[~;or ~]~A~^, ~}~]" expected-length length)))
 
+(defun skip-whitespace (input)
+  "Skip over whitespace characters."
+  (iter (for char = (read-char input nil nil))
+        (cond ((null char)
+               (finish))
+              ((not (whitespace-char-p char))
+               (unread-char char input)
+               (finish)))))
+
 (defun decode-input (weights input)
   "Attempt to read a full encoding quantum.
 
@@ -528,6 +542,8 @@ Second argument INPUT is the character input stream.
 
 Return value is the number of digits read.  If secondary value is
 true, the input was filled with pad characters."
+  (when *ignore-whitespace*
+    (skip-whitespace input))
   (iter (with index = 0) ;number of digits read
         (with pad = 0) ;number of pad characters
         (with weight) ;weight of a digit
@@ -613,6 +629,8 @@ true, the input was filled with pad characters."
                                    (push digit/quantum expected-length))
                            (t (invalid-sequence-length input len ',(nreverse expected-length)))))
                      ;; Done.
+                     (when (and *ignore-whitespace* (plusp len))
+                       (skip-whitespace input))
                      (when pad
                        ;; Ensure end of file.
                        (let ((char (peek-char nil input nil nil)))
