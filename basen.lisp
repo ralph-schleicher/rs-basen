@@ -90,6 +90,54 @@ too close to the letter ‘b’.")
   "The pad character.")
 (declaim (type character *pad-character*))
 
+(defvar *line-length* nil
+  "The maximum line length of the encoded data.
+Value has to be a non-negative integer or ‘nil’.  The actual line
+length is the given value rounded down to the nearest multiple of
+a full encoding quantum.  If the actual line length is a positive
+integer, the encoded data is split into multiple lines.  A value
+of ‘nil’ disables line breaks.  Default is ‘nil’.")
+(declaim (type (or (integer 0) null) *line-length*))
+
+(defconst nl (string #\Newline)
+  "The default newline character sequence.")
+(declaim (type simple-string nl))
+
+(defconst lf (string #\Linefeed)
+  "Line feed (Unicode U+000A) character sequence.")
+(declaim (type simple-string lf))
+
+(defconst cr (string #\Return)
+  "Carriage return (Unicode U+000D) character sequence.")
+(declaim (type simple-string cr))
+
+(defconst crlf (concatenate 'string cr lf)
+  "Carriage return (Unicode U+000D) and line feed (Unicode U+000A) character sequence.")
+(declaim (type simple-string crlf))
+
+(defvar *line-separator* :default
+  "The line separator for chunked output.
+Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘crlf’ to utilize the default
+newline character sequence, a line feed character, a carriage return
+character, or a carriage return and line feed character sequence
+respectively.
+
+See also the ‘*line-length*’ special variable.")
+(declaim (type (member :default :lf :cr :crlf) *line-separator*))
+
+(defvar *default-line-separator* nl
+  "The default line separator.
+
+See also the ‘*line-separator*’ special variable.")
+(declaim (type simple-string *default-line-separator*))
+
+(defun line-separator ()
+  "Return the newline character sequence.
+
+Affected by ‘*line-separator*’ and ‘*default-line-separator*’."
+  (ecase (or *line-separator* :default)
+    (:default *default-line-separator*) (:lf lf) (:cr cr) (:crlf crlf)))
+
 ;;;; Encoding
 
 (defmacro define-encoder (name (full-quantum-size digit-size) &optional doc)
@@ -105,8 +153,16 @@ too close to the letter ‘b’.")
           `(defun ,name (output input pad)
              ,@(when doc (list doc))
              (declare (ignore pad))
-             (iter (for octet = (read-byte input nil))
+             (iter (with current-column = 0)
+                   (with fill-column = (truncate (or *line-length* 0) ,digit/full-quantum))
+                   (with separator = (when (plusp fill-column) (line-separator)))
+                   (for octet = (read-byte input nil))
                    (until (null octet))
+                   ;; Manage line breaks.
+                   (when (and separator (>= current-column fill-column))
+                     (write-string separator output)
+                     (setf current-column 0))
+                   (incf current-column)
                    ;; Output encoded characters.
                    ,@(iter (repeat digit/full-quantum)
                            (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
@@ -120,10 +176,18 @@ too close to the letter ‘b’.")
              ;; An integer with FULL-QUANTUM-SIZE bit.
              (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
              ;; Do the encoding.
-             (iter (for len = (read-sequence octets input))
+             (iter (with current-column = 0)
+                   (with fill-column = (truncate (or *line-length* 0) ,digit/full-quantum))
+                   (with separator = (when (plusp fill-column) (line-separator)))
+                   (for len = (read-sequence octets input))
                    (if (= len ,byte/full-quantum)
                        (progn
-                         ;; A full encoding quantum.  Load octets.
+                         ;; A full encoding quantum.
+                         (when (and separator (>= current-column fill-column))
+                           (write-string separator output)
+                           (setf current-column 0))
+                         (incf current-column)
+                         ;; Load octets.
                          ,@(iter (repeat byte/full-quantum)
                                  (for index :from 0)
                                  (for pos :from (- bit/full-quantum 8) :by -8)
@@ -141,6 +205,8 @@ too close to the letter ‘b’.")
                                  (collecting
                                    ;; The ‘case’ clause.
                                    `(,byte/quantum
+                                     (when (and separator (>= current-column fill-column))
+                                       (write-string separator output))
                                      ;; Clear encoding quantum.
                                      (setf int 0)
                                      ;; Load octets.
@@ -247,12 +313,15 @@ Keyword argument PAD-CHARACTER is the pad character.  Value has to
  be a character.  Default is the ‘=’ (equals sign) character.
 If keyword argument PAD is true, append pad characters to the output
  if the input is not an integral multiple of a full encoding quantum.
- Padding only occurs with base 32 encoding (40 bit encoding quantum)
- and base 8 encoding (24 bit encoding quantum).
+ Padding only occurs with base 64 encoding (24 bit encoding quantum),
+ base 32 encoding (40 bit encoding quantum), and base 8 encoding
+ (24 bit encoding quantum).
 
 If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a string containing the
-output."
+output.
+
+Affected by ‘*line-length*’ and ‘*line-separator*’."
   (check-type base (member 64 32 16 8 4 2))
   (check-type alphabet simple-string)
   (check-type pad-character character)
