@@ -44,6 +44,8 @@
                 #:with-input-from-sequence
                 #:with-output-to-sequence)
   (:export
+   #:*line-length*
+   #:*line-separator*
    #:standard-alphabet
    #:standard-pad-character
    #:rfc4648-base64-alphabet
