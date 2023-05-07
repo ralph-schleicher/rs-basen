@@ -57,6 +57,15 @@ for inline expansion by the compiler."
      (defun ,name ,arg-list
        ,@body)))
 
+(defconst unicode-whitespace-p (cl-unicode:property-test "White_Space")
+  "Test function for whitespace characters.")
+
+(defsubst unicode-whitespace-p (char)
+  "Return true if CHAR is a whitespace character.
+Argument CHAR has to be a character object."
+  (declare (type character char))
+  (funcall unicode-whitespace-p char))
+
 (define-condition basen-error (stream-error simple-condition)
   ((position
     :accessor stream-error-position
