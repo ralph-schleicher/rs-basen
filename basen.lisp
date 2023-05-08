@@ -950,41 +950,27 @@ is interpreted as a stream of UTF-8 encoded characters."
 
 (defun rfc2045-base64-encode (destination source)
   "Base 64 encoding as per RFC 2045.
+Also known as MIME base 64 content transfer encoding.  Utilizes the
+base 64 alphabet of RFC 4648 with padding and a maximum line length
+of 76 characters.
 
-First argument DESTINATION is the output object.  Value is either
- a stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a string.
-Second argument SOURCE is the input object.  Value is either a stream,
- a string, a sequence, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a string containing the
-output."
+See the ‘basen-encode’ function for a description of the arguments
+and return values.  The ‘rfc2045-base64-encode’ function implicitly
+binds ‘*line-length*’ to 76 and changes the default line separator
+to ‘:crlf’."
   (let ((*line-length* 76)
         (*default-line-separator* crlf))
     (rfc4648-base64-encode destination source :pad t)))
 
 (defun rfc2045-base64-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 2045.
+Also known as MIME base 64 content transfer encoding.  Utilizes the
+base 64 alphabet of RFC 4648 with padding and a maximum line length
+of 76 characters.
 
-First argument DESTINATION is the output object.  Value is
- either a stream or a pathname.  The special value ‘t’ is equal
- to ‘*standard-output*’ and ‘nil’ means to return a sequence.
-Second argument SOURCE is the input object.  Value is either a
- stream, a string, or a pathname.  The special value ‘t’ is equal
- to ‘*standard-input*’.
-If keyword argument JUNK-ALLOWED is true, do not signal an error of
- type ‘decoding-error’ if more input is available after the encoded
- data.  Disabled by default.
-Keyword argument RESULT-TYPE specifies the sequence type of the return
- value if DESTINATION is ‘nil’.  Value is either ‘string’, ‘vector’,
- or ‘list’.  Default is to return a vector of octets.
-
-If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-result is ‘nil’.  Otherwise, the result is a sequence containing the
-output.  If the output object designates a string, the decoded input
-is interpreted as a stream of UTF-8 encoded characters."
+See the ‘basen-decode’ function for a description of the arguments
+and return values.  The ‘rfc2045-base64-decode’ function implicitly
+binds ‘*ignore-whitespace*’ to true."
   (declare (ignore junk-allowed result-type))
   (let ((*ignore-whitespace* t))
     (apply #'rfc4648-base64-decode destination source options)))
