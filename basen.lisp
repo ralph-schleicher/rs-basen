@@ -96,7 +96,9 @@ Value has to be a non-negative integer or ‘nil’.  The actual line
 length is the given value rounded down to the nearest multiple of
 a full encoding quantum.  If the actual line length is a positive
 integer, the encoded data is split into multiple lines.  A value
-of ‘nil’ disables line breaks.  Default is ‘nil’.")
+of ‘nil’ disables line breaks.  This is the default.
+
+See also the ‘*line-separator*’ special variable.")
 (declaim (type (or (integer 0) null) *line-length*))
 
 (defconst nl (string #\Newline)
@@ -117,7 +119,7 @@ of ‘nil’ disables line breaks.  Default is ‘nil’.")
 
 (defvar *line-separator* :default
   "The line separator for chunked output.
-Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘crlf’ to utilize the default
+Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize the default
 newline character sequence, a line feed character, a carriage return
 character, or a carriage return and line feed character sequence
 respectively.
