@@ -1,4 +1,6 @@
-* RS-BaseN
+* RS-BASEN
 
-The RS-BaseN library is a a generic base /n/ encoding/decoding
-library for /n/ ∈ {2, 4, 8, 16, 32, 64}.
+The RS-BASEN library is a generic base /n/ encoding/decoding library
+for /n/ ∈ {2, 4, 8, 16, 32, 64}.  Focus is on convenience, not speed.
+Basis is RFC 4648 but you can configure the encoder/decoder to suite
+your needs.
