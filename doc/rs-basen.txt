@@ -1,6 +1,65 @@
-DE.RALPH-SCHLEICHER.BASEN
+RS-BASEN
 
 A generic base N encoding/decoding library.
+
+                                                              [Special Variable]
+*ignore-whitespace*
+   Whether or not to ignore whitespace characters on input.
+   If enabled, whitespace characters around the encoded data and between
+   full encoding quantums is ignored.  Disabled by default.
+
+                                                              [Special Variable]
+*line-length*
+   The maximum line length of the encoded data.
+   Value has to be a non-negative integer or ‘nil’.  The actual line
+   length is the given value rounded down to the nearest multiple of
+   a full encoding quantum.  If the actual line length is a positive
+   integer, the encoded data is split into multiple lines.  A value
+   of ‘nil’ disables line breaks.  This is the default.
+
+   See also the ‘*line-separator*’ special variable.
+
+                                                              [Special Variable]
+*line-separator*
+   The line separator for chunked output.
+   Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize the default
+   newline character sequence, a line feed character, a carriage return
+   character, or a carriage return and line feed character sequence
+   respectively.
+
+   See also the ‘*line-length*’ special variable.
+
+                                                                      [Function]
+basen-decode (destination source &key base alphabet pad-character case-fold
+              junk-allowed result-type)
+   Generic base N decoding.
+
+   First argument DESTINATION is the output object.  Value is
+    either a stream or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-output*’ and ‘nil’ means to return a sequence.
+   Second argument SOURCE is the input object.  Value is either a
+    stream, a string, or a pathname.  The special value ‘t’ is equal
+    to ‘*standard-input*’.
+   Keyword argument BASE is the radix used for the decoding.  Valid
+    values are 64, 32, 16, 8, 4, or 2.  Default is 32.
+   Keyword argument ALPHABET is the alphabet for the decoding.  Value
+    has to be a string with at least BASE characters.  Default are the
+    decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.
+   Keyword argument PAD-CHARACTER is the pad character.  Value has to
+    be a character.  Default is the ‘=’ (equals sign) character.
+   If keyword argument CASE-FOLD is true, ignore differences in case
+    when looking up characters in the alphabet.  Disabled by default.
+   If keyword argument JUNK-ALLOWED is true, do not signal an error of
+    type ‘decoding-error’ if more input is available after the encoded
+    data.  Disabled by default.
+   Keyword argument RESULT-TYPE specifies the sequence type of the return
+    value if DESTINATION is ‘nil’.  Value is either ‘string’, ‘vector’,
+    or ‘list’.  Default is to return a vector of octets.
+
+   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
+   result is ‘nil’.  Otherwise, the result is a sequence containing the
+   output.  If the output object designates a string, the decoded input
+   is interpreted as a stream of UTF-8 encoded characters.
 
                                                                       [Function]
 basen-encode (destination source &key base alphabet pad-character pad)
@@ -21,12 +80,15 @@ basen-encode (destination source &key base alphabet pad-character pad)
     be a character.  Default is the ‘=’ (equals sign) character.
    If keyword argument PAD is true, append pad characters to the output
     if the input is not an integral multiple of a full encoding quantum.
-    Padding only occurs with base 32 encoding (40 bit encoding quantum)
-    and base 8 encoding (24 bit encoding quantum).
+    Padding only occurs with base 64 encoding (24 bit encoding quantum),
+    base 32 encoding (40 bit encoding quantum), and base 8 encoding
+    (24 bit encoding quantum).
 
    If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
    result is ‘nil’.  Otherwise, the result is a string containing the
    output.
+
+   Affected by ‘*line-length*’ and ‘*line-separator*’.
 
                                                                       [Constant]
 human-base32-alphabet
@@ -37,21 +99,70 @@ human-base32-alphabet
    too close to the letter ‘b’.
 
                                                                       [Function]
+rfc1421-base64-decode (destination source &rest options &key junk-allowed
+                       result-type)
+   Base 64 decoding as per RFC 1421.
+   Also known as PEM printable encoding.  Utilizes the base 64 alphabet
+   of RFC 4648 with padding and a maximum line length of 64 characters.
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.  The ‘rfc1421-base64-decode’ function implicitly
+   binds ‘*ignore-whitespace*’ to true.
+
+                                                                      [Function]
+rfc1421-base64-encode (destination source)
+   Base 64 encoding as per RFC 1421.
+   Also known as PEM printable encoding.  Utilizes the base 64 alphabet
+   of RFC 4648 with padding and a maximum line length of 64 characters.
+
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  The ‘rfc1421-base64-encode’ function implicitly
+   binds ‘*line-length*’ to 64 and changes the default line separator
+   to ‘:crlf’.
+
+                                                                      [Function]
+rfc2045-base64-decode (destination source &rest options &key junk-allowed
+                       result-type)
+   Base 64 decoding as per RFC 2045.
+   Also known as MIME base 64 content transfer encoding.  Utilizes the
+   base 64 alphabet of RFC 4648 with padding and a maximum line length
+   of 76 characters.
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.  The ‘rfc2045-base64-decode’ function implicitly
+   binds ‘*ignore-whitespace*’ to true.
+
+                                                                      [Function]
+rfc2045-base64-encode (destination source)
+   Base 64 encoding as per RFC 2045.
+   Also known as MIME base 64 content transfer encoding.  Utilizes the
+   base 64 alphabet of RFC 4648 with padding and a maximum line length
+   of 76 characters.
+
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  The ‘rfc2045-base64-encode’ function implicitly
+   binds ‘*line-length*’ to 76 and changes the default line separator
+   to ‘:crlf’.
+
+                                                                      [Function]
+rfc4648-base16-decode (destination source &rest options &key junk-allowed
+                       result-type)
+   Base 16 decoding as per RFC 4648.
+   Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
+   letters ‘A’ to ‘F’).  There is no padding.
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.
+
+                                                                      [Function]
 rfc4648-base16-encode (destination source &key pad)
    Base 16 encoding as per RFC 4648.
+   Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
+   letters ‘A’ to ‘F’).  There is no padding.
 
-   First argument DESTINATION is the output object.  Value is either
-    a stream, a string, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-output*’ and ‘nil’ means to return a string.
-   Second argument SOURCE is the input object.  Value is either a stream,
-    a string, a sequence, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-input*’.
-   If keyword argument PAD is true, append pad characters to the output
-    if the input is not an integral multiple of a full encoding quantum.
-
-   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-   result is ‘nil’.  Otherwise, the result is a string containing the
-   output.
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  Keyword argument PAD has no effect since padding
+   can not occur.
 
                                                                       [Constant]
 rfc4648-base32-alphabet
@@ -60,40 +171,44 @@ rfc4648-base32-alphabet
    Uses the letters ‘A’ to ‘Z’ and the decimal digits ‘2’ to ‘7’.
 
                                                                       [Function]
+rfc4648-base32-decode (destination source &rest options &key junk-allowed
+                       result-type)
+   Base 32 decoding as per RFC 4648.
+   Utilizes ‘rfc4648-base32-alphabet’ (the letters ‘A’ to ‘Z’ and the
+   decimal digits ‘2’ to ‘7’) and ‘rfc4648-pad-character’ (the equals
+   sign ‘=’).
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.
+
+                                                                      [Function]
 rfc4648-base32-encode (destination source &key pad)
    Base 32 encoding as per RFC 4648.
+   Utilizes ‘rfc4648-base32-alphabet’ (the letters ‘A’ to ‘Z’ and the
+   decimal digits ‘2’ to ‘7’) and ‘rfc4648-pad-character’ (the equals
+   sign ‘=’).
 
-   First argument DESTINATION is the output object.  Value is either
-    a stream, a string, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-output*’ and ‘nil’ means to return a string.
-   Second argument SOURCE is the input object.  Value is either a stream,
-    a string, a sequence, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-input*’.
-   If keyword argument PAD is true, append pad characters to the output
-    if the input is not an integral multiple of a full encoding quantum.
-    Enabled by default.
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  Padding is enabled by default.
 
-   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-   result is ‘nil’.  Otherwise, the result is a string containing the
-   output.
+                                                                      [Function]
+rfc4648-base32hex-decode (destination source &rest options &key junk-allowed
+                          result-type)
+   Base 32 decoding as per RFC 4648 but with the standard alphabet.
+   Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
+   letters ‘A’ to ‘V’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.
 
                                                                       [Function]
 rfc4648-base32hex-encode (destination source &key pad)
    Base 32 encoding as per RFC 4648 but with the standard alphabet.
+   Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
+   letters ‘A’ to ‘V’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
 
-   First argument DESTINATION is the output object.  Value is either
-    a stream, a string, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-output*’ and ‘nil’ means to return a string.
-   Second argument SOURCE is the input object.  Value is either a stream,
-    a string, a sequence, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-input*’.
-   If keyword argument PAD is true, append pad characters to the output
-    if the input is not an integral multiple of a full encoding quantum.
-    Enabled by default.
-
-   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-   result is ‘nil’.  Otherwise, the result is a string containing the
-   output.
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  Padding is enabled by default.
 
                                                                       [Constant]
 rfc4648-base64-alphabet
@@ -103,22 +218,25 @@ rfc4648-base64-alphabet
    digits ‘0’ to ‘9’, and the characters ‘+’ and ‘/’.
 
                                                                       [Function]
+rfc4648-base64-decode (destination source &rest options &key junk-allowed
+                       result-type)
+   Base 64 decoding as per RFC 4648.
+   Utilizes ‘rfc4648-base64-alphabet’ (the letters ‘A’ to ‘Z’ and ‘a’
+   to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
+   ‘/’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.
+
+                                                                      [Function]
 rfc4648-base64-encode (destination source &key pad)
    Base 64 encoding as per RFC 4648.
+   Utilizes ‘rfc4648-base64-alphabet’ (the letters ‘A’ to ‘Z’ and ‘a’
+   to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
+   ‘/’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
 
-   First argument DESTINATION is the output object.  Value is either
-    a stream, a string, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-output*’ and ‘nil’ means to return a string.
-   Second argument SOURCE is the input object.  Value is either a stream,
-    a string, a sequence, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-input*’.
-   If keyword argument PAD is true, append pad characters to the output
-    if the input is not an integral multiple of a full encoding quantum.
-    Enabled by default.
-
-   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-   result is ‘nil’.  Otherwise, the result is a string containing the
-   output.
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  Padding is enabled by default.
 
                                                                       [Constant]
 rfc4648-base64url-alphabet
@@ -128,22 +246,25 @@ rfc4648-base64url-alphabet
    digits ‘0’ to ‘9’, and the characters ‘-’ and ‘_’.
 
                                                                       [Function]
+rfc4648-base64url-decode (destination source &rest options &key junk-allowed
+                          result-type)
+   Base 64 decoding as per RFC 4648 but with the URL safe alphabet.
+   Utilizes ‘rfc4648-base64url-alphabet’ (the letters ‘A’ to ‘Z’ and
+   ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
+   and ‘_’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
+
+   See the ‘basen-decode’ function for a description of the parameters
+   and return values.
+
+                                                                      [Function]
 rfc4648-base64url-encode (destination source &key pad)
    Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+   Utilizes ‘rfc4648-base64url-alphabet’ (the letters ‘A’ to ‘Z’ and
+   ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
+   and ‘_’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
 
-   First argument DESTINATION is the output object.  Value is either
-    a stream, a string, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-output*’ and ‘nil’ means to return a string.
-   Second argument SOURCE is the input object.  Value is either a stream,
-    a string, a sequence, or a pathname.  The special value ‘t’ is equal
-    to ‘*standard-input*’.
-   If keyword argument PAD is true, append pad characters to the output
-    if the input is not an integral multiple of a full encoding quantum.
-    Enabled by default.
-
-   If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
-   result is ‘nil’.  Otherwise, the result is a string containing the
-   output.
+   See the ‘basen-encode’ function for a description of the parameters
+   and return values.  Padding is enabled by default.
 
                                                                       [Constant]
 rfc4648-pad-character
