@@ -54,6 +54,8 @@
    #:rfc4648-base32-alphabet
    #:rfc4648-pad-character
    #:human-base32-alphabet
+   #:basen-error
+   #:decoding-error
    #:basen-encode
    #:basen-decode
    #:rfc4648-base64-encode
