@@ -73,6 +73,8 @@
    #:rfc2045-base64-encode
    #:rfc2045-base64-decode)
   (:documentation
-   "A generic base N encoding/decoding library."))
+   "A generic base N encoding/decoding library for N ∈ {2, 4, 8, 16, 32, 64}.
+Basis is RFC 4648 but you can configure the encoder/decoder to suite your
+needs."))
 
 ;;; packages.lisp ends here
