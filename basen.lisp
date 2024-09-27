@@ -373,7 +373,7 @@ Affected by ‘*line-length*’ and ‘*line-separator*’."
   ()
   (:documentation "Condition type for a decoding error.
 
-Class precedence list:
+Class Precedence List:
 
      ‘decoding-error’, ‘basen-error’, ...")
   (:report (lambda (condition stream)
@@ -630,8 +630,8 @@ true, the input was filled with pad characters."
                        result-type)
   "Generic base N decoding.
 
-First argument DESTINATION is the output object.  Value is
- either a stream or a pathname.  The special value ‘t’ is equal
+First argument DESTINATION is the output object.  Value is either
+ a stream, string, or a pathname.  The special value ‘t’ is equal
  to ‘*standard-output*’ and ‘nil’ means to return a sequence.
 Second argument SOURCE is the input object.  Value is either a
  stream, a string, or a pathname.  The special value ‘t’ is equal
@@ -660,7 +660,7 @@ is interpreted as a stream of UTF-8 encoded characters."
   (check-type alphabet simple-string)
   (check-type pad-character character)
   (when (< (length alphabet) base)
-    (error "Alphabet is too small"))
+    (error "Alphabet is too small."))
   (let ((*alphabet* alphabet)
         (*pad-character* pad-character)
         (*char-equal* (if case-fold #'char-equal #'char=))
