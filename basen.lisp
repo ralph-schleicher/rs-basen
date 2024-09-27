@@ -42,7 +42,9 @@ Uses the decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.")
 (declaim (type simple-string standard-alphabet))
 
 (defconst standard-pad-character #\=
-  "The standard pad character.")
+  "The standard pad character.
+
+Value is the ‘=’ (equals sign) character.")
 (declaim (type character standard-pad-character))
 
 (defconst rfc4648-base64-alphabet "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -66,7 +68,9 @@ Uses the letters ‘A’ to ‘Z’ and the decimal digits ‘2’ to ‘7’.")
 (declaim (type simple-string rfc4648-base32-alphabet))
 
 (defconst rfc4648-pad-character #\=
-  "The pad character as per RFC 4648.")
+  "The pad character as per RFC 4648.
+
+Value is the ‘=’ (equals sign) character.")
 (declaim (type character rfc4648-pad-character))
 
 ;; Depending on the font, people may have difficulties to distinguish
