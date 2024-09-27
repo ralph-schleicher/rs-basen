@@ -337,7 +337,7 @@ Affected by ‘*line-length*’ and ‘*line-separator*’."
   (check-type alphabet simple-string)
   (check-type pad-character character)
   (when (< (length alphabet) base)
-    (error "Alphabet is too small"))
+    (error "Alphabet is too small."))
   (let ((*alphabet* alphabet)
         (*pad-character* pad-character))
     (%encod1 (ecase base
