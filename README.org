@@ -4,3 +4,17 @@ The RS-BASEN library is a generic base /n/ encoding/decoding library
 for /n/ ∈ {2, 4, 8, 16, 32, 64}.  Focus is on convenience, not speed.
 Basis is RFC 4648 but you can configure the encoder/decoder to suite
 your needs.
+
+
+** Notable Features
+
+- Input and output can be streams, strings, sequences, or pathnames.
+- Implicit UTF-8 character encoding/decoding for strings.
+- The alphabet and padding is configurable.
+- The line length and newline character sequence for chunked output
+  is configurable.
+- The treatment of whitespace characters in the input is configurable.
+- Convenience functions for
+  - RFC 4648 base 64, base 32, and base 16 encodings,
+  - RFC 2045 MIME base 64 content transfer encoding, and
+  - RFC 1421 PEM printable encoding.
