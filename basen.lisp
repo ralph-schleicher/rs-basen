@@ -96,6 +96,7 @@ too close to the letter ‘b’.")
 
 (defvar *line-length* nil
   "The maximum line length of the encoded data.
+
 Value has to be a non-negative integer or ‘nil’.  The actual line
 length is the given value rounded down to the nearest multiple of
 a full encoding quantum.  If the actual line length is a positive
@@ -109,11 +110,11 @@ See also the ‘*line-separator*’ special variable.")
   "The default newline character sequence.")
 (declaim (type simple-string nl))
 
-(defconst lf (string #\Linefeed)
+(defconst lf (string (code-char #x000A))
   "Line feed (Unicode U+000A) character sequence.")
 (declaim (type simple-string lf))
 
-(defconst cr (string #\Return)
+(defconst cr (string (code-char #x000D))
   "Carriage return (Unicode U+000D) character sequence.")
 (declaim (type simple-string cr))
 
@@ -121,18 +122,27 @@ See also the ‘*line-separator*’ special variable.")
   "Carriage return (Unicode U+000D) and line feed (Unicode U+000A) character sequence.")
 (declaim (type simple-string crlf))
 
-(defvar *line-separator* :default
+(defvar *line-separator* nil
   "The line separator for chunked output.
-Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize the default
-newline character sequence, a line feed character, a carriage return
-character, or a carriage return and line feed character sequence
-respectively.
+
+Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#\Newline’
+character, a line feed character, a carriage return character, or
+a carriage return and line feed character sequence respectively.
+A value of ‘nil’ means to use the default line separator.  This
+is the default.
+
+Initially, the default line separator is a ‘#\Newline’ character.
+Some encodings change the default line separator.  The user can
+bind the ‘*line-separator*’ special variable to override the
+default line separator.
 
 See also the ‘*line-length*’ special variable.")
-(declaim (type (member :default :lf :cr :crlf) *line-separator*))
+(declaim (type (member nil :nl :lf :cr :crlf) *line-separator*))
 
 (defvar *default-line-separator* nl
   "The default line separator.
+
+Default is a ‘#\Newline’ character.
 
 See also the ‘*line-separator*’ special variable.")
 (declaim (type simple-string *default-line-separator*))
@@ -141,11 +151,12 @@ See also the ‘*line-separator*’ special variable.")
   "Return the newline character sequence.
 
 Affected by ‘*line-separator*’ and ‘*default-line-separator*’."
-  (ecase (or *line-separator* :default)
-    (:default *default-line-separator*) (:lf lf) (:cr cr) (:crlf crlf)))
+  (ecase *line-separator*
+    ((nil) *default-line-separator*) (:nl nl) (:lf lf) (:cr cr) (:crlf crlf)))
 
 (defvar *ignore-whitespace* nil
   "Whether or not to ignore whitespace characters on input.
+
 If enabled, whitespace characters around the encoded data and between
 full encoding quantums is ignored.  Disabled by default.")
 
