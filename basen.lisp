@@ -678,6 +678,7 @@ is interpreted as a stream of UTF-8 encoded characters."
 
 (defun rfc4648-base64-encode (destination source &key (pad t))
   "Base 64 encoding as per RFC 4648.
+
 Utilizes ‘rfc4648-base64-alphabet’ (the letters ‘A’ to ‘Z’ and ‘a’
 to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
 ‘/’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
@@ -692,6 +693,7 @@ and return values.  Padding is enabled by default."
 
 (defun rfc4648-base64-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 4648.
+
 Utilizes ‘rfc4648-base64-alphabet’ (the letters ‘A’ to ‘Z’ and ‘a’
 to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
 ‘/’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
@@ -707,6 +709,7 @@ and return values."
 
 (defun rfc4648-base64url-encode (destination source &key (pad t))
   "Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+
 Utilizes ‘rfc4648-base64url-alphabet’ (the letters ‘A’ to ‘Z’ and
 ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
 and ‘_’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
@@ -721,6 +724,7 @@ and return values.  Padding is enabled by default."
 
 (defun rfc4648-base64url-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 4648 but with the URL safe alphabet.
+
 Utilizes ‘rfc4648-base64url-alphabet’ (the letters ‘A’ to ‘Z’ and
 ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
 and ‘_’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
@@ -736,6 +740,7 @@ and return values."
 
 (defun rfc4648-base32-encode (destination source &key (pad t))
   "Base 32 encoding as per RFC 4648.
+
 Utilizes ‘rfc4648-base32-alphabet’ (the letters ‘A’ to ‘Z’ and the
 decimal digits ‘2’ to ‘7’) and ‘rfc4648-pad-character’ (the equals
 sign ‘=’).
@@ -750,6 +755,7 @@ and return values.  Padding is enabled by default."
 
 (defun rfc4648-base32-decode (destination source &rest options &key junk-allowed result-type)
   "Base 32 decoding as per RFC 4648.
+
 Utilizes ‘rfc4648-base32-alphabet’ (the letters ‘A’ to ‘Z’ and the
 decimal digits ‘2’ to ‘7’) and ‘rfc4648-pad-character’ (the equals
 sign ‘=’).
@@ -765,6 +771,7 @@ and return values."
 
 (defun rfc4648-base32hex-encode (destination source &key (pad t))
   "Base 32 encoding as per RFC 4648 but with the standard alphabet.
+
 Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘V’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
 
@@ -778,6 +785,7 @@ and return values.  Padding is enabled by default."
 
 (defun rfc4648-base32hex-decode (destination source &rest options &key junk-allowed result-type)
   "Base 32 decoding as per RFC 4648 but with the standard alphabet.
+
 Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘V’) and ‘rfc4648-pad-character’ (the equals sign ‘=’).
 
@@ -792,6 +800,7 @@ and return values."
 
 (defun rfc4648-base16-encode (destination source &key pad)
   "Base 16 encoding as per RFC 4648.
+
 Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘F’).  There is no padding.
 
@@ -806,6 +815,7 @@ can not occur."
 
 (defun rfc4648-base16-decode (destination source &rest options &key junk-allowed result-type)
   "Base 16 decoding as per RFC 4648.
+
 Utilizes ‘standard-alphabet’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘F’).  There is no padding.
 
@@ -822,6 +832,7 @@ and return values."
 
 (defun rfc1421-base64-encode (destination source)
   "Base 64 encoding as per RFC 1421.
+
 Also known as PEM printable encoding.  Utilizes the base 64 alphabet
 of RFC 4648 with padding and a maximum line length of 64 characters.
 
@@ -835,6 +846,7 @@ to ‘:crlf’."
 
 (defun rfc1421-base64-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 1421.
+
 Also known as PEM printable encoding.  Utilizes the base 64 alphabet
 of RFC 4648 with padding and a maximum line length of 64 characters.
 
@@ -849,6 +861,7 @@ binds ‘*ignore-whitespace*’ to true."
 
 (defun rfc2045-base64-encode (destination source)
   "Base 64 encoding as per RFC 2045.
+
 Also known as MIME base 64 content transfer encoding.  Utilizes the
 base 64 alphabet of RFC 4648 with padding and a maximum line length
 of 76 characters.
@@ -863,6 +876,7 @@ to ‘:crlf’."
 
 (defun rfc2045-base64-decode (destination source &rest options &key junk-allowed result-type)
   "Base 64 decoding as per RFC 2045.
+
 Also known as MIME base 64 content transfer encoding.  Utilizes the
 base 64 alphabet of RFC 4648 with padding and a maximum line length
 of 76 characters.
