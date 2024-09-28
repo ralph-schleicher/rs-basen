@@ -77,4 +77,4 @@ Class precedence list:
 
      ‘basen-error’, ‘stream-error’, ‘error’, ..."))
 
-;; common.lisp ends here
+;;; common.lisp ends here

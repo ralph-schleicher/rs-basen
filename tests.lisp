@@ -188,4 +188,4 @@
         (lisp-unit:*print-summary* t))
     (run-tests tests :rs-basen-tests)))
 
-;; tests.lisp ends here
+;;; tests.lisp ends here
