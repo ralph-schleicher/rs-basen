@@ -50,11 +50,11 @@
   (generate-doc
    :data data
    :output-format :html
-   :output (merge-pathnames "rs-basen.html" doc-dir))
+   :output (merge-pathnames (uiop:parse-unix-namestring "rs-basen.html") doc-dir))
   (generate-doc
    :data data
    :output-format :text
-   :output (merge-pathnames "rs-basen.txt" doc-dir))
-  (values))
+   :output (merge-pathnames (uiop:parse-unix-namestring "rs-basen.txt") doc-dir))
+  ())
 
 ;;; generate-doc.lisp ends here
