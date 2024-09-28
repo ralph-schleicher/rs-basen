@@ -40,12 +40,26 @@
    <h1>RS-BASEN</h1>
   </div>
   <div class="prologue">
-   <pre>A generic base N encoding/decoding library.</pre>
+   <pre>A generic base N encoding/decoding library for N ∈ {2, 4, 8, 16, 32, 64}.
+Basis is RFC 4648 but you can configure the encoder/decoder to suite your
+needs.</pre>
   </div>
   <div class="contents" id="contents">
    <h2>Contents</h2>
    <div class="contents-listing">
     <ul>
+     <li>
+      <a href="#n5zgdwsm">
+       <span class="category">Condition</span>
+       <span class="symbol">basen-error</span>
+      </a>
+     </li>
+     <li>
+      <a href="#w2ermxdh">
+       <span class="category">Condition</span>
+       <span class="symbol">decoding-error</span>
+      </a>
+     </li>
      <li>
       <a href="#gqj3n3ty">
        <span class="category">Special Variable</span>
@@ -206,6 +220,56 @@
    </div>
   </div>
   <div class="dictionary">
+   <div class="definition" id="n5zgdwsm">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">basen-error</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Condition</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Base class for all encoding or decoding errors.
+
+Class precedence list:
+
+     ‘basen-error’, ‘stream-error’, ‘error’, ...</pre>
+    </div>
+   </div>
+   <div class="definition" id="w2ermxdh">
+    <div class="signature">
+     <table class="signature">
+      <colgroup>
+       <col />
+       <col />
+       <col />
+      </colgroup>
+      <tbody>
+       <tr>
+	<td class="symbol"><a href="#contents"><span class="symbol">decoding-error</span></a></td>
+	<td class="lambda-list"></td>
+	<td class="category"><span class="category">Condition</span></td>
+       </tr>
+      </tbody>
+     </table>
+    </div>
+    <div class="documentation">
+     <pre>Condition type for a decoding error.
+
+Class Precedence List:
+
+     ‘decoding-error’, ‘<a href="#n5zgdwsm"><span class="symbol">basen-error</span></a>’, ...</pre>
+    </div>
+   </div>
    <div class="definition" id="gqj3n3ty">
     <div class="signature">
      <table class="signature">
@@ -225,6 +289,7 @@
     </div>
     <div class="documentation">
      <pre>Whether or not to ignore whitespace characters on input.
+
 If enabled, whitespace characters around the encoded data and between
 full encoding quantums is ignored.  Disabled by default.</pre>
     </div>
@@ -248,6 +313,7 @@ full encoding quantums is ignored.  Disabled by default.</pre>
     </div>
     <div class="documentation">
      <pre>The maximum line length of the encoded data.
+
 Value has to be a non-negative integer or ‘nil’.  The actual line
 length is the given value rounded down to the nearest multiple of
 a full encoding quantum.  If the actual line length is a positive
@@ -276,10 +342,17 @@ See also the ‘<a href="#necydeq8"><span class="symbol">*line-separator*</span>
     </div>
     <div class="documentation">
      <pre>The line separator for chunked output.
-Value is ‘:default’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize the default
-newline character sequence, a line feed character, a carriage return
-character, or a carriage return and line feed character sequence
-respectively.
+
+Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#Newline’
+character, a line feed character, a carriage return character, or
+a carriage return and line feed character sequence respectively.
+A value of ‘nil’ means to use the default line separator.  This
+is the default.
+
+Initially, the default line separator is a ‘#Newline’ character.
+Some encodings change the default line separator.  The user can
+bind the ‘*line-separator*’ special variable to override the
+default line separator.
 
 See also the ‘<a href="#xf85cgt3"><span class="symbol">*line-length*</span></a>’ special variable.</pre>
     </div>
@@ -304,8 +377,8 @@ See also the ‘<a href="#xf85cgt3"><span class="symbol">*line-length*</span></a
     <div class="documentation">
      <pre>Generic base N decoding.
 
-First argument DESTINATION is the output object.  Value is
- either a stream or a pathname.  The special value ‘t’ is equal
+First argument DESTINATION is the output object.  Value is either
+ a stream, string, or a pathname.  The special value ‘t’ is equal
  to ‘*standard-output*’ and ‘nil’ means to return a sequence.
 Second argument SOURCE is the input object.  Value is either a
  stream, a string, or a pathname.  The special value ‘t’ is equal
@@ -320,7 +393,7 @@ Keyword argument PAD-CHARACTER is the pad character.  Value has to
 If keyword argument CASE-FOLD is true, ignore differences in case
  when looking up characters in the alphabet.  Disabled by default.
 If keyword argument JUNK-ALLOWED is true, do not signal an error of
- type ‘decoding-error’ if more input is available after the encoded
+ type ‘<a href="#w2ermxdh"><span class="symbol">decoding-error</span></a>’ if more input is available after the encoded
  data.  Disabled by default.
 Keyword argument RESULT-TYPE specifies the sequence type of the return
  value if DESTINATION is ‘nil’.  Value is either ‘string’, ‘vector’,
@@ -422,6 +495,7 @@ too close to the letter ‘b’.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 decoding as per RFC 1421.
+
 Also known as PEM printable encoding.  Utilizes the base 64 alphabet
 of RFC 4648 with padding and a maximum line length of 64 characters.
 
@@ -449,6 +523,7 @@ binds ‘<a href="#gqj3n3ty"><span class="symbol">*ignore-whitespace*</span></a>
     </div>
     <div class="documentation">
      <pre>Base 64 encoding as per RFC 1421.
+
 Also known as PEM printable encoding.  Utilizes the base 64 alphabet
 of RFC 4648 with padding and a maximum line length of 64 characters.
 
@@ -477,6 +552,7 @@ to ‘:crlf’.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 decoding as per RFC 2045.
+
 Also known as MIME base 64 content transfer encoding.  Utilizes the
 base 64 alphabet of RFC 4648 with padding and a maximum line length
 of 76 characters.
@@ -505,6 +581,7 @@ binds ‘<a href="#gqj3n3ty"><span class="symbol">*ignore-whitespace*</span></a>
     </div>
     <div class="documentation">
      <pre>Base 64 encoding as per RFC 2045.
+
 Also known as MIME base 64 content transfer encoding.  Utilizes the
 base 64 alphabet of RFC 4648 with padding and a maximum line length
 of 76 characters.
@@ -534,6 +611,7 @@ to ‘:crlf’.</pre>
     </div>
     <div class="documentation">
      <pre>Base 16 decoding as per RFC 4648.
+
 Utilizes ‘<a href="#o2ismprp"><span class="symbol">standard-alphabet</span></a>’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘F’).  There is no padding.
 
@@ -560,6 +638,7 @@ and return values.</pre>
     </div>
     <div class="documentation">
      <pre>Base 16 encoding as per RFC 4648.
+
 Utilizes ‘<a href="#o2ismprp"><span class="symbol">standard-alphabet</span></a>’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘F’).  There is no padding.
 
@@ -610,6 +689,7 @@ Uses the letters ‘A’ to ‘Z’ and the decimal digits ‘2’ to ‘7’.</
     </div>
     <div class="documentation">
      <pre>Base 32 decoding as per RFC 4648.
+
 Utilizes ‘<a href="#kkk7b8jl"><span class="symbol">rfc4648-base32-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and the
 decimal digits ‘2’ to ‘7’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals
 sign ‘=’).
@@ -637,6 +717,7 @@ and return values.</pre>
     </div>
     <div class="documentation">
      <pre>Base 32 encoding as per RFC 4648.
+
 Utilizes ‘<a href="#kkk7b8jl"><span class="symbol">rfc4648-base32-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and the
 decimal digits ‘2’ to ‘7’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals
 sign ‘=’).
@@ -664,6 +745,7 @@ and return values.  Padding is enabled by default.</pre>
     </div>
     <div class="documentation">
      <pre>Base 32 decoding as per RFC 4648 but with the standard alphabet.
+
 Utilizes ‘<a href="#o2ismprp"><span class="symbol">standard-alphabet</span></a>’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘V’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
 
@@ -690,6 +772,7 @@ and return values.</pre>
     </div>
     <div class="documentation">
      <pre>Base 32 encoding as per RFC 4648 but with the standard alphabet.
+
 Utilizes ‘<a href="#o2ismprp"><span class="symbol">standard-alphabet</span></a>’ (the decimal digits ‘0’ to ‘9’ and the
 letters ‘A’ to ‘V’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
 
@@ -740,6 +823,7 @@ digits ‘0’ to ‘9’, and the characters ‘+’ and ‘/’.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 decoding as per RFC 4648.
+
 Utilizes ‘<a href="#xlyf2x52"><span class="symbol">rfc4648-base64-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and ‘a’
 to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
 ‘/’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
@@ -767,6 +851,7 @@ and return values.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 encoding as per RFC 4648.
+
 Utilizes ‘<a href="#xlyf2x52"><span class="symbol">rfc4648-base64-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and ‘a’
 to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘+’ and
 ‘/’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
@@ -818,6 +903,7 @@ digits ‘0’ to ‘9’, and the characters ‘-’ and ‘_’.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 decoding as per RFC 4648 but with the URL safe alphabet.
+
 Utilizes ‘<a href="#gky8v2a8"><span class="symbol">rfc4648-base64url-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and
 ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
 and ‘_’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
@@ -845,6 +931,7 @@ and return values.</pre>
     </div>
     <div class="documentation">
      <pre>Base 64 encoding as per RFC 4648 but with the URL safe alphabet.
+
 Utilizes ‘<a href="#gky8v2a8"><span class="symbol">rfc4648-base64url-alphabet</span></a>’ (the letters ‘A’ to ‘Z’ and
 ‘a’ to ‘z’, the decimal digits ‘0’ to ‘9’, and the characters ‘-’
 and ‘_’) and ‘<a href="#idym3g2v"><span class="symbol">rfc4648-pad-character</span></a>’ (the equals sign ‘=’).
@@ -871,7 +958,9 @@ and return values.  Padding is enabled by default.</pre>
      </table>
     </div>
     <div class="documentation">
-     <pre>The pad character as per RFC 4648.</pre>
+     <pre>The pad character as per RFC 4648.
+
+Value is the ‘=’ (equals sign) character.</pre>
     </div>
    </div>
    <div class="definition" id="o2ismprp">
@@ -915,7 +1004,9 @@ Uses the decimal digits ‘0’ to ‘9’ and the letters ‘A’ to ‘Z’.</
      </table>
     </div>
     <div class="documentation">
-     <pre>The standard pad character.</pre>
+     <pre>The standard pad character.
+
+Value is the ‘=’ (equals sign) character.</pre>
     </div>
    </div>
   </div>
