@@ -34,7 +34,7 @@
 ## Code:
 
 PACKAGE := rs-basen
-VERSION := $(shell cat VERSION)
+VERSION := $(shell head -n1 VERSION)
 TARNAME := $(PACKAGE)-$(VERSION)
 
 ### Rules
@@ -45,6 +45,8 @@ all:
 .PHONY: check
 check: all
 	quicklisp-check-build -sbcl -ccl $(PACKAGE)
+	sbcl --non-interactive --eval '(asdf:test-system "$(PACKAGE)")'
+	ccl --batch --eval '(asdf:test-system "$(PACKAGE)")' < /dev/null
 
 .PHONY: clean
 clean:
