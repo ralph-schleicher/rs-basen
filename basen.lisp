@@ -125,13 +125,13 @@ See also the ‘*line-separator*’ special variable.")
 (defvar *line-separator* nil
   "The line separator for chunked output.
 
-Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#\Newline’
+Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#\\Newline’
 character, a line feed character, a carriage return character, or
 a carriage return and line feed character sequence respectively.
 A value of ‘nil’ means to use the default line separator.  This
 is the default.
 
-Initially, the default line separator is a ‘#\Newline’ character.
+Initially, the default line separator is a ‘#\\Newline’ character.
 Some encodings change the default line separator.  The user can
 bind the ‘*line-separator*’ special variable to override the
 default line separator.
@@ -142,7 +142,7 @@ See also the ‘*line-length*’ special variable.")
 (defvar *default-line-separator* nl
   "The default line separator.
 
-Default is a ‘#\Newline’ character.
+Default is a ‘#\\Newline’ character.
 
 See also the ‘*line-separator*’ special variable.")
 (declaim (type simple-string *default-line-separator*))
