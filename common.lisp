@@ -73,7 +73,7 @@ Argument CHAR has to be a character object."
     :initform nil))
   (:documentation "Base class for all encoding or decoding errors.
 
-Class precedence list:
+Class Precedence List:
 
      ‘basen-error’, ‘stream-error’, ‘error’, ..."))
 
