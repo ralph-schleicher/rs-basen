@@ -157,8 +157,11 @@ Affected by ‘*line-separator*’ and ‘*default-line-separator*’."
 (defvar *ignore-whitespace* nil
   "Whether or not to ignore whitespace characters on input.
 
-If enabled, whitespace characters around the encoded data and between
-full encoding quantums is ignored.  Disabled by default.")
+If true, whitespace characters around the encoded data and between
+full encoding quantums is ignored.  Disabled by default.
+
+Any character with the Unicode ‘White_Space’ property is considered
+a whitespace character.")
 
 ;;;; Encoding
 
