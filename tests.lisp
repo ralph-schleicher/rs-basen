@@ -46,8 +46,6 @@
 
 (in-package :rs-basen-tests)
 
-(defparameter *prefix* (asdf:system-source-directory "rs-basen"))
-
 (define-test octets-from-string
   (assert-equal
    '(206 187 226 129 187 194 185)
@@ -181,6 +179,34 @@
   (assert-equal "foo" (rfc4648-base32-decode nil "MZXW6" :result-type 'string))
   (assert-equal "foo" (rfc4648-base32hex-decode nil "CPNMU" :result-type 'string))
   ())
+
+(define-test decode-errors
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "?")) ;invalid character
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "=")) ;invalid character
+  (assert-equalp #(102 111 111) (rfc4648-base64-decode nil "Zm9v?" :junk-allowed t))
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "Zm9v?")) ;invalid character
+  (assert-error 'end-of-file (rfc4648-base64-decode nil "Zm9vY")) ;last quantum has only 6 bit
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "Zm9vYh")) ;last quantum has 12 bit but pad bits are not zero
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "Zm9vY=")) ;wrong padding
+  (assert-error 'end-of-file (rfc4648-base64-decode nil "Zm9vYg=")) ;too few pad characters
+  (assert-error 'decoding-error (rfc4648-base64-decode nil "Zm9vYg===")) ;too many pad characters
+  (assert-equalp  #(102 111 111 98) (rfc4648-base64-decode nil "Zm9vYg===" :junk-allowed t))
+  ())
+
+(define-test decode-chunked
+  (let ((*ignore-whitespace* t))
+    (assert-equal "foo" (rfc4648-base64-decode nil " Zm9v" :result-type 'string))
+    (assert-equal "foo" (rfc4648-base64-decode nil "   Zm9v" :result-type 'string))
+    (assert-equal "foo" (rfc4648-base64-decode nil "Zm9v " :result-type 'string))
+    (assert-equal "foo" (rfc4648-base64-decode nil "Zm9v   " :result-type 'string))
+    (assert-equal "foo" (rfc4648-base64-decode nil "  Zm9v  " :result-type 'string))
+    (assert-equal "foobar" (rfc4648-base64-decode nil "Zm9v YmFy" :result-type 'string))
+    (assert-equal "foobar" (rfc4648-base64-decode nil "Zm9v   YmFy" :result-type 'string))
+    (assert-equal "fo" (rfc4648-base64-decode nil "Zm8= " :result-type 'string))
+    (assert-equal "fo" (rfc4648-base64-decode nil "Zm8=   " :result-type 'string))
+    (assert-equal "fo" (rfc4648-base64-decode nil "Zm8=  ?" :result-type 'string :junk-allowed t))
+    (assert-error 'decoding-error (rfc4648-base64-decode nil "Zm8=  ?")) ;invalid character
+    ()))
 
 (defun main (&optional (tests :all))
   (let ((lisp-unit:*print-errors* t)
