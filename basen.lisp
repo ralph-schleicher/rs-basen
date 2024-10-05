@@ -451,36 +451,24 @@ leaves a rest of one character."
 First argument WEIGHTS stores the resulting digit weights.
 Second argument INPUT is the character input stream.
 
-Return value is the number of digits read.  If secondary value is
-true, the input was filled with pad characters."
-  (when *ignore-whitespace*
-    (skip-whitespace input))
-  (iter (with index = 0) ;number of digits read
-        (with pad = 0) ;number of pad characters
+Return value is the number of digits read.  If no full encoding
+quantum has been read, secondary value is the next character to
+be read."
+  (iter (with len = 0) ;number of digits read
         (with weight) ;weight of a digit
         (repeat (length weights))
         (for char = (read-char input nil nil))
         (cond ((null char)
                (finish))
-              ((char= char *pad-character*)
-               (incf pad))
-              (t
-               (setf weight (position char *alphabet* :test *char-equal*))
-               (when (or (null weight) (plusp pad))
-                 ;; CHAR is neither a digit nor a pad character.
-                 ;; Digits after the first pad character are not
-                 ;; valid.
-                 (unread-char char input)
-                 (when (or (not *junk-allowed*) (plusp pad))
-                   (unexpected-character input char))
-                 (finish))
+              ((setf weight (position char *alphabet* :test *char-equal*))
                ;; A valid digit.
-               (setf (aref weights index) weight)
-               (incf index)))
+               (setf (aref weights len) weight)
+               (incf len))
+              (t
+               (unread-char char input)
+               (finish)))
         (finally
-         (when (and (plusp pad) (< (+ index pad) (length weights)))
-           (error 'end-of-file :stream input))
-         (return (values index (plusp pad))))))
+         (return (values len char)))))
 
 (defmacro define-decoder (name (full-quantum-size digit-size) &optional doc)
   "Define a decoder function."
@@ -500,7 +488,9 @@ true, the input was filled with pad characters."
            ;; An integer with FULL-QUANTUM-SIZE bit.
            (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
            ;; Do the decoding.
-           (iter (for (values len pad) = (decode-input octets input))
+           (iter (when *ignore-whitespace*
+                   (skip-whitespace input))
+                 (for (values len next-char) = (decode-input octets input))
                  (if (= len ,digit/full-quantum)
                      (progn
                        ;; A full encoding quantum.  Load digits.
@@ -538,15 +528,29 @@ true, the input was filled with pad characters."
                                                (for pos :from (- bit/full-quantum 8) :by -8)
                                                (collecting `(write-byte (ldb (byte 8 ,pos) int) output)))))
                                    (push digit/quantum expected-length))
-                           (t (invalid-sequence-length input len ',(nreverse expected-length)))))
+                           (t
+                            (when (null next-char)
+                              (error 'end-of-file :stream input))
+                            (invalid-sequence-length input len ',(nreverse expected-length)))))
+                     (when (plusp len)
+                       ;; Slurp pad characters.
+                       (when (and next-char (char= next-char *pad-character*))
+                         (iter (repeat (- ,digit/full-quantum len))
+                               (for char = (read-char input nil nil))
+                               (cond ((null char)
+                                      (error 'end-of-file :stream input))
+                                     ((char/= char *pad-character*)
+                                      (unread-char char input)
+                                      (unexpected-character input char)))
+                               (finally
+                                (setf next-char char))))
+                       (when (and next-char *ignore-whitespace*)
+                         (skip-whitespace input)))
+                     ;; Ensure end of file.
+                     (let ((char (peek-char nil input nil nil)))
+                       (when (and char (not *junk-allowed*))
+                         (unexpected-character input char)))
                      ;; Done.
-                     (when (and *ignore-whitespace* (plusp len))
-                       (skip-whitespace input))
-                     (when pad
-                       ;; Ensure end of file.
-                       (let ((char (peek-char nil input nil nil)))
-                         (when (and char (not *junk-allowed*))
-                           (unexpected-character input char))))
                      (leave))))))))
   ())
 
@@ -658,7 +662,23 @@ Keyword argument RESULT-TYPE specifies the sequence type of the return
 If DESTINATION is a stream, a string, a pathname, or ‘t’, then the
 result is ‘nil’.  Otherwise, the result is a sequence containing the
 output.  If the output object designates a string, the decoded input
-is interpreted as a stream of UTF-8 encoded characters."
+is interpreted as a stream of UTF-8 encoded characters.
+
+Exceptional Situations:
+
+   * Signals an error of type ‘end-of-file’ if the input ends
+     prematurely.
+
+   * Signals an error of type ‘decoding-error’ if
+
+        * the last encoding quantum has an invalid number of
+          digits or is padded with the wrong number of pad
+          characters,
+
+        * the pad bits of the last digit are not zero,
+
+        * JUNK-ALLOWED is false and the input contains an
+          unexpected character."
   (check-type base (member 64 32 16 8 4 2))
   (check-type alphabet simple-string)
   (check-type pad-character character)
