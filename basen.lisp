@@ -436,39 +436,14 @@ leaves a rest of one character."
          ;; and so on.
          :format-arguments (list "~#[none~;~A~;~A or ~A~:;~@{~#[~;or ~]~A~^, ~}~]" expected-length length)))
 
-(defun skip-whitespace (input)
+(defsubst skip-whitespace (input)
   "Skip over whitespace characters."
   (iter (for char = (read-char input nil nil))
-        (cond ((null char)
-               (finish))
-              ((not (unicode-whitespace-p char))
-               (unread-char char input)
-               (finish)))))
-
-(defun decode-input (weights input)
-  "Attempt to read a full encoding quantum.
-
-First argument WEIGHTS stores the resulting digit weights.
-Second argument INPUT is the character input stream.
-
-Return value is the number of digits read.  If no full encoding
-quantum has been read, secondary value is the next character to
-be read."
-  (iter (with len = 0) ;number of digits read
-        (with weight) ;weight of a digit
-        (repeat (length weights))
-        (for char = (read-char input nil nil))
-        (cond ((null char)
-               (finish))
-              ((setf weight (position char *alphabet* :test *char-equal*))
-               ;; A valid digit.
-               (setf (aref weights len) weight)
-               (incf len))
-              (t
-               (unread-char char input)
-               (finish)))
-        (finally
-         (return (values len char)))))
+        (when (null char)
+          (finish))
+        (when (not (unicode-whitespace-p char))
+          (unread-char char input)
+          (finish))))
 
 (defmacro define-decoder (name (full-quantum-size digit-size) &optional doc)
   "Define a decoder function."
@@ -481,77 +456,86 @@ be read."
       ;; Return value.
       `(defun ,name (output input)
          ,@(when doc (list doc))
-         (let (;; Input buffer (digit weights, not characters).
-               (octets (make-array ,digit/full-quantum :element-type 'octet :initial-element 0))
+         (let (;; The character under evaluation.  Becomes the next
+               ;; character to be read if rejected; ‘nil’ means end
+               ;; of file reached.
+               next-char
+               ;; A digit weight.
+               weight
                ;; An encoding quantum.
-               (int 0))
-           ;; An integer with FULL-QUANTUM-SIZE bit.
-           (declare (type (integer 0 ,(1- (expt 2 bit/full-quantum))) int))
+               (quantum 0)
+               ;; Number of digits read.
+               (length 0))
+           (declare (type (or null character) next-char)
+                    (type (or null (unsigned-byte ,bit/digit)) weight)
+                    (type (unsigned-byte ,bit/full-quantum) quantum)
+                    (type fixnum length))
            ;; Do the decoding.
            (iter (when *ignore-whitespace*
                    (skip-whitespace input))
-                 (for (values len next-char) = (decode-input octets input))
-                 (if (= len ,digit/full-quantum)
-                     (progn
-                       ;; A full encoding quantum.  Load digits.
-                       ,@(iter (repeat digit/full-quantum)
-                               (for index :from 0)
-                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                               (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
-                       ;; Output decoded octets.
-                       ,@(iter (repeat byte/full-quantum)
-                               (for pos :from (- bit/full-quantum 8) :by -8)
-                               (collecting `(write-byte (ldb (byte 8 ,pos) int) output))))
-                   (progn
-                     ;; Remaining encoding quantum.
-                     ,(let (expected-length)
-                        `(case len
-                           (0)
-                           ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
-                                   (for digit/quantum = (ceiling bit/quantum bit/digit))
-                                   (for byte/quantum = (/ bit/quantum 8))
-                                   (collecting
-                                     ;; The ‘case’ clause.
-                                     `(,digit/quantum
-                                       ;; Clear encoding quantum.
-                                       (setf int 0)
-                                       ;; Load digits.
-                                       ,@(iter (repeat digit/quantum)
-                                               (for index :from 0)
-                                               (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
-                                               (collecting `(setf (ldb (byte ,bit/digit ,pos) int) (aref octets ,index))))
-                                       ;; Sanity check.
-                                       (unless (zerop (ldb (byte ,(- bit/full-quantum bit/quantum) 0) int))
-                                         (invalid-last-digit input (char *alphabet* (aref octets ,(1- digit/quantum)))))
-                                       ;; Output decoded octets.
-                                       ,@(iter (repeat byte/quantum)
-                                               (for pos :from (- bit/full-quantum 8) :by -8)
-                                               (collecting `(write-byte (ldb (byte 8 ,pos) int) output)))))
-                                   (push digit/quantum expected-length))
-                           (t
-                            (when (null next-char)
-                              (error 'end-of-file :stream input))
-                            (invalid-sequence-length input len ',(nreverse expected-length)))))
-                     (when (plusp len)
-                       ;; Slurp pad characters.
-                       (when (and next-char (char= next-char *pad-character*))
-                         (iter (repeat (- ,digit/full-quantum len))
-                               (for char = (read-char input nil nil))
-                               (cond ((null char)
-                                      (error 'end-of-file :stream input))
-                                     ((char/= char *pad-character*)
-                                      (unread-char char input)
-                                      (unexpected-character input char)))
-                               (finally
-                                (setf next-char char))))
-                       (when (and next-char *ignore-whitespace*)
-                         (skip-whitespace input)))
-                     ;; Ensure end of file.
-                     (let ((char (peek-char nil input nil nil)))
-                       (when (and char (not *junk-allowed*))
-                         (unexpected-character input char)))
-                     ;; Done.
-                     (leave))))))))
+                 ;; Load digits.
+                 (setf quantum 0
+                       length 0)
+                 ,@(iter (repeat digit/full-quantum)
+                         (for pos :from (- bit/full-quantum bit/digit) :by (- bit/digit))
+                         (appending `((setf next-char (read-char input nil nil))
+                                      (when (null next-char)
+                                        (finish))
+                                      ;; The end bounding index limits the value range of the digit weight.
+                                      ;; Otherwise, sharing ‘standard-alphabet’ does not work.
+                                      (setf weight (position next-char *alphabet* :end ,(expt 2 bit/digit) :test *char-equal*))
+                                      (when (null weight)
+                                        (unread-char next-char input)
+                                        (finish))
+                                      ;; A valid digit.
+                                      (setf (ldb (byte ,bit/digit ,pos) quantum) weight)
+                                      (incf length))))
+                 ;; A full encoding quantum has been read.
+                 ;; Output decoded octets.
+                 ,@(iter (repeat byte/full-quantum)
+                         (for pos :from (- bit/full-quantum 8) :by -8)
+                         (collecting `(write-byte (ldb (byte 8 ,pos) quantum) output))))
+           ;; Process the remaining encoding quantum.  The LENGTH
+           ;; and NEXT-CHAR variables have their proper meaning.
+           ,(let ((expected-length (list digit/full-quantum)))
+              `(case length
+                 (0)
+                 ,@(iter (for bit/quantum :from 8 :below bit/full-quantum :by 8)
+                         (for digit/quantum = (ceiling bit/quantum bit/digit))
+                         (for byte/quantum = (/ bit/quantum 8))
+                         (collecting
+                           ;; The ‘case’ clause.
+                           `(,digit/quantum
+                             ;; Sanity check.
+                             (unless (zerop (ldb (byte ,(- bit/full-quantum bit/quantum) 0) quantum))
+                               (invalid-last-digit input (char *alphabet* (ldb (byte ,bit/digit ,(* (- digit/full-quantum digit/quantum) bit/digit)) quantum))))
+                             ;; Output decoded octets.
+                             ,@(iter (repeat byte/quantum)
+                                     (for pos :from (- bit/full-quantum 8) :by -8)
+                                     (collecting `(write-byte (ldb (byte 8 ,pos) quantum) output)))))
+                         (push digit/quantum expected-length))
+                 (t
+                  (when (null next-char)
+                    (error 'end-of-file :stream input))
+                  (invalid-sequence-length input length ',(sort expected-length #'<)))))
+           (when (plusp length)
+             ;; Slurp pad characters.
+             (when (and next-char (char= next-char *pad-character*))
+               (iter (repeat (- ,digit/full-quantum length))
+                     (setf next-char (read-char input nil nil))
+                     (when (null next-char)
+                       (error 'end-of-file :stream input))
+                     (when (char/= next-char *pad-character*)
+                       (unread-char next-char input)
+                       (unexpected-character input next-char))))
+             (when (and next-char *ignore-whitespace*)
+               (skip-whitespace input)))
+           ;; Ensure end of file.
+           (setf next-char (peek-char nil input nil nil))
+           (when (and next-char (not *junk-allowed*))
+             (unexpected-character input next-char))
+           ;; Done.
+           (values)))))
   ())
 
 (define-decoder decode64 (24 6)
