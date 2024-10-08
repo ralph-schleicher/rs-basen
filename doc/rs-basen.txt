@@ -8,7 +8,7 @@ needs.
 basen-error
    Base class for all encoding or decoding errors.
 
-   Class precedence list:
+   Class Precedence List:
 
         ‘basen-error’, ‘stream-error’, ‘error’, ...
 
@@ -24,8 +24,11 @@ decoding-error
 *ignore-whitespace*
    Whether or not to ignore whitespace characters on input.
 
-   If enabled, whitespace characters around the encoded data and between
+   If true, whitespace characters around the encoded data and between
    full encoding quantums is ignored.  Disabled by default.
+
+   Any character with the Unicode ‘White_Space’ property is considered
+   a whitespace character.
 
                                                               [Special Variable]
 *line-length*
@@ -43,13 +46,13 @@ decoding-error
 *line-separator*
    The line separator for chunked output.
 
-   Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#Newline’
+   Value is ‘:nl’, ‘:lf’, ‘:cr’, or ‘:crlf’ to utilize a ‘#\Newline’
    character, a line feed character, a carriage return character, or
    a carriage return and line feed character sequence respectively.
    A value of ‘nil’ means to use the default line separator.  This
    is the default.
 
-   Initially, the default line separator is a ‘#Newline’ character.
+   Initially, the default line separator is a ‘#\Newline’ character.
    Some encodings change the default line separator.  The user can
    bind the ‘*line-separator*’ special variable to override the
    default line separator.
@@ -87,6 +90,22 @@ basen-decode (destination source &key base alphabet pad-character case-fold
    result is ‘nil’.  Otherwise, the result is a sequence containing the
    output.  If the output object designates a string, the decoded input
    is interpreted as a stream of UTF-8 encoded characters.
+
+   Exceptional Situations:
+
+      * Signals an error of type ‘end-of-file’ if the input ends
+        prematurely.
+
+      * Signals an error of type ‘decoding-error’ if
+
+           * the last encoding quantum has an invalid number of
+             digits or is padded with the wrong number of pad
+             characters,
+
+           * the pad bits of the last digit are not zero,
+
+           * JUNK-ALLOWED is false and the input contains an
+             unexpected character.
 
                                                                       [Function]
 basen-encode (destination source &key base alphabet pad-character pad)
